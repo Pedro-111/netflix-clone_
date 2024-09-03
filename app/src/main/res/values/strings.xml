@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Netflix-Clone</string>
+    <string name="series_aclamadas_por_la_cr_tica">Series aclamadas por la crítica</string>
+    <string name="series_dram_ticas">Series dramáticas</string>
+    <string name="ver">Ver</string>
+    <string name="netflix_logo">netflix_logo</string>
+    <string name="download">download</string>
+    <string name="search">search</string>
+</resources>

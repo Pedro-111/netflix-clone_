@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Fondo rojo de Netflix -->
+    <path
+        android:fillColor="#E50914"
+        android:pathData="M0,0h24v24H0V0z"/>
+    <!-- Letra N blanca -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8.584,7.79L6.787,12.24L8.584,16.69L10.564,12.24L8.584,7.79zM11.46,4.81L6.787,12.24L8.584,16.69L12.276,8.16L11.46,4.81zM17.19,7.79L15.392,12.24L17.19,16.69L19.171,12.24L17.19,7.79zM18.645,5.09L13.489,12.24L15.286,16.69L20.96,8.16L18.645,5.09zM7.03,4.5L12.276,8.16L11.46,12.24L7.03,8.16L7.03,4.5z"/>
+</vector>
+
