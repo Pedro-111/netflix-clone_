@@ -1,4 +1,4 @@
-package com.example.netflix_clone.Model;
+package com.example.netflix_clone.Fragmentos;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.DetailActivity;
+import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.R;
 
 import java.util.ArrayList;

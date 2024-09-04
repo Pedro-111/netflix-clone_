@@ -6,4 +6,10 @@
     <string name="netflix_logo">netflix_logo</string>
     <string name="download">download</string>
     <string name="search">search</string>
+    <string name="series">Series</string>
+    <string name="pel_culas">Películas</string>
+    <string name="categor_as">Categorías</string>
+    <string name="instalar_juego">Instalar juego</string>
+    <string name="mi_lista">Mi lista</string>
+    <string name="los_10_juegos_m_viles_m_s_populares">Los 10 juegos móviles más populares</string>
 </resources>

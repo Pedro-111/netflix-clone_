@@ -1,10 +1,12 @@
 package com.example.netflix_clone;
 
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import com.example.netflix_clone.Model.HomeFragment;
+
+import com.example.netflix_clone.Fragmentos.GamesFragment;
+import com.example.netflix_clone.Fragmentos.HomeFragment;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -33,9 +35,10 @@ public class MainActivity extends AppCompatActivity {
                 if (itemId == R.id.nav_home) {
                     selectedFragment = new HomeFragment();
                 }
-//                else if (itemId == R.id.nav_games) {
-//                    selectedFragment = new GamesFragment();
-//                } else if (itemId == R.id.nav_new) {
+                else if (itemId == R.id.nav_games) {
+                    selectedFragment = new GamesFragment();
+                }
+//                else if (itemId == R.id.nav_new) {
 //                    selectedFragment = new NewFragment();
 //                } else if (itemId == R.id.nav_profile) {
 //                    selectedFragment = new ProfileFragment();
