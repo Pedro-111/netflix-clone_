@@ -23,7 +23,6 @@ public class GamesFragment extends Fragment {
     private RecyclerView mobileGamesRecyclerView;
 
     public GamesFragment() {
-        // Required empty public constructor
     }
 
     @Override
