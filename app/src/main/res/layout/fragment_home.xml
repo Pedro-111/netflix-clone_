@@ -45,35 +45,42 @@
                 style="?android:attr/buttonBarButtonStyle"/>
         </LinearLayout>
 
-        <!-- Game Section -->
-        <LinearLayout
-            android:id="@+id/game_section"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:background="#102D45">
+            android:padding="16dp">
 
-            <ImageView
+            <!-- CardView as a wrapper for the ImageView -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:src="@drawable/snake_io"
-                android:scaleType="centerCrop"
-                android:layout_marginBottom="16dp"
-                android:contentDescription="@null"/>
+                android:layout_height="440dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                >
 
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/snake_io"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@null" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- Overlaid content -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="bottom"
+                android:layout_gravity="bottom">
 
+                <!-- Texts above -->
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -81,30 +88,41 @@
                         android:text="Snake.io"
                         android:textColor="@android:color/white"
                         android:textSize="18sp"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold"
+                        android:layout_gravity="center" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Táctico • Tiernos • Clásico"
                         android:textColor="#D1D5DB"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp"
+                        android:layout_gravity="center" />
                 </LinearLayout>
 
-                <Button
-                    android:layout_width="wrap_content"
+                <!-- Buttons below -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/instalar_juego"
-                    android:textColor="@android:color/white"
-                    android:layout_marginEnd="8dp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp">
 
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/mi_lista"
-                    android:textColor="@android:color/white"/>
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/instalar_juego"
+                        android:textColor="@android:color/white"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mi_lista"
+                        android:textColor="@android:color/white" />
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </FrameLayout>
 
         <!-- Popular Games Section -->
         <LinearLayout

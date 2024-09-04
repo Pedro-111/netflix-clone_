@@ -54,18 +54,18 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         // Populate this with your actual data
         List<Content> series = new ArrayList<>();
         series.add(new Content("Peaky Blinders","https://wallpaperaccess.com/full/1087735.jpg","Descripcion"));
-        series.add(new Content("Better Call Saul", "https://example.com/better_call_saul.jpg"));
-        series.add(new Content("Breaking Bad", "https://example.com/breaking_bad.jpg"));
-        series.add(new Content("House", "https://example.com/house.jpg"));
+        series.add(new Content("Better Call Saul", "https://wallpaperaccess.com/full/1091801.jpg"));
+        series.add(new Content("Breaking Bad", "https://wallpaperaccess.com/full/5840994.jpg"));
+        series.add(new Content("House", "https://wallpaperaccess.com/full/1827383.jpg"));
         return series;
     }
 
     private List<Content> getDramaticSeries() {
         // Populate this with your actual data
         List<Content> series = new ArrayList<>();
-        series.add(new Content("Elite", "https://example.com/elite.jpg"));
-        series.add(new Content("Dexter", "https://example.com/dexter.jpg"));
-        series.add(new Content("Sex Education", "https://example.com/sex_education.jpg"));
+        series.add(new Content("Elite", "https://wallpaperaccess.com/full/2281944.jpg"));
+        series.add(new Content("Dexter", "https://wallpaperaccess.com/full/1088998.jpg"));
+        series.add(new Content("Sex Education", "https://wallpaperaccess.com/full/1557429.png"));
         return series;
     }
 
