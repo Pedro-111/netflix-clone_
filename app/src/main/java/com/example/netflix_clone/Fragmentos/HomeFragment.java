@@ -80,9 +80,9 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
     private List<Content> getYourNextStory(){
         List<Content> contenido = new ArrayList<>();
-        contenido.add(new Content("Inexpertos","https://pics.filmaffinity.com/Inexpertos-565930605-large.jpg"));
-        contenido.add(new Content("Suits","https://wallpaperaccess.com/full/1265940.jpg"));
-        contenido.add(new Content("You","https://wallpaperaccess.com/full/2114490.jpg"));
+        contenido.add(new Content("Inexpertos", "https://pics.filmaffinity.com/Inexpertos-565930605-large.jpg", "Un grupo de jóvenes sin experiencia en el mundo de los negocios se embarca en una serie de aventuras mientras intentan hacerse un nombre en el competitivo mundo corporativo."));
+        contenido.add(new Content("Suits", "https://wallpaperaccess.com/full/1265940.jpg", "La serie sigue a un brillante joven sin título legal que se hace pasar por un abogado en una prestigiosa firma de abogados de Nueva York, enfrentando desafíos éticos y personales en el camino."));
+        contenido.add(new Content("You", "https://wallpaperaccess.com/full/2114490.jpg", "Un librero se obsesiona con una mujer y utiliza las redes sociales y otras herramientas para acercarse a ella, mientras su comportamiento se vuelve cada vez más inquietante y peligroso."));
         return contenido;
     }
 
