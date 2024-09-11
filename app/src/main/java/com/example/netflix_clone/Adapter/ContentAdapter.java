@@ -44,6 +44,13 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ContentV
         Content content = contentList.get(position);
         holder.bind(content, listener);
     }
+    // Método para actualizar los datos
+    public void updateData(List<Content> newContentList) {
+        contentList.clear();
+        contentList.addAll(newContentList);
+        notifyDataSetChanged();
+    }
+
 
     @Override
     public int getItemCount() {
@@ -61,8 +68,8 @@ public class ContentAdapter extends RecyclerView.Adapter<ContentAdapter.ContentV
         }
 
         void bind(final Content content, final OnItemClickListener listener) {
-            contentTitle.setText(content.getTitle());
-            Glide.with(itemView.getContext()).load(content.getImageUrl()).into(contentImage);
+            contentTitle.setText(content.getName());
+            Glide.with(itemView.getContext()).load(content.getPoster_path()).into(contentImage);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

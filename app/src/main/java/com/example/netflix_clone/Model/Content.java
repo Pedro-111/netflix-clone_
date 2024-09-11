@@ -3,43 +3,31 @@ package com.example.netflix_clone.Model;
 import java.io.Serializable;
 
 public class Content implements Serializable {
-    private String title;
-    private String imageUrl;
-    private String description;
+    private String name;
+    private String overview;
+    private String poster_path;
 
-    public Content(String title, String imageUrl) {
-        this.title = title;
-        this.imageUrl = imageUrl;
+    public String getName() {
+        return name;
     }
 
-    public Content(String title, String imageUrl, String description) {
-        this.title = title;
-        this.imageUrl = imageUrl;
-        this.description = description;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    // Getters and setters
-    public String getTitle() {
-        return title;
+    public String getOverview() {
+        return overview;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setOverview(String overview) {
+        this.overview = overview;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getPoster_path() {
+        return "https://image.tmdb.org/t/p/w500" + poster_path;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setPoster_path(String poster_path) {
+        this.poster_path = poster_path;
     }
 }

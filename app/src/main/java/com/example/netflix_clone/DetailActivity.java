@@ -25,9 +25,9 @@ public class DetailActivity extends AppCompatActivity {
         TextView contentDescription = findViewById(R.id.content_description);
         Button watchButton = findViewById(R.id.watch_button);
 
-        Glide.with(this).load(content.getImageUrl()).into(contentImage);
-        contentTitle.setText(content.getTitle());
-        contentDescription.setText(content.getDescription());
+        Glide.with(this).load(content.getPoster_path()).into(contentImage);
+        contentTitle.setText(content.getName());
+        contentDescription.setText(content.getOverview());
 
         watchButton.setOnClickListener(new View.OnClickListener() {
             @Override
