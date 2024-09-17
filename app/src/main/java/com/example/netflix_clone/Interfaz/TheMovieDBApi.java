@@ -19,4 +19,14 @@ public interface TheMovieDBApi {
     // Endpoint para obtener contenido personalizado
     @GET("discover/tv")
     Call<ApiResponse> getYourNextStory(@Query("api_key") String apiKey, @Query("language") String language);
+
+    @GET("discover/movie")
+    Call<ApiResponse> getPopularContent(@Query("api_key") String apiKey, @Query("language") String language);
+
+    @GET("search/multi")
+    Call<ApiResponse> searchContent(
+            @Query("api_key") String apiKey,
+            @Query("query") String query,
+            @Query("language") String language
+    );
 }

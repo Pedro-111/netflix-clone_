@@ -11,6 +11,54 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Toolbar en la parte superior -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:titleTextColor="@android:color/white">
+
+            <!-- Icono de Netflix -->
+            <ImageView
+                android:id="@+id/logo_icon"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_netflix_logo"
+                android:contentDescription="@string/netflix_logo"
+                android:layout_gravity="start" />
+
+            <!-- Contenedor para los botones -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp">
+
+                <!-- Botón de Descarga -->
+                <ImageButton
+                    android:id="@+id/download_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_download"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/download"
+                    android:layout_marginStart="8dp" />
+
+                <!-- Botón de Búsqueda -->
+                <ImageButton
+                    android:id="@+id/search_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_search"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search" />
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+
         <!-- Navigation Bar -->
         <LinearLayout
             android:id="@+id/navigation_bar"
@@ -26,7 +74,7 @@
                 android:text="@string/series"
                 android:textColor="@android:color/white"
                 android:layout_marginHorizontal="8dp"
-                style="?android:attr/buttonBarButtonStyle"/>
+                style="?android:attr/buttonBarButtonStyle" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -34,7 +82,7 @@
                 android:text="@string/pel_culas"
                 android:textColor="@android:color/white"
                 android:layout_marginHorizontal="8dp"
-                style="?android:attr/buttonBarButtonStyle"/>
+                style="?android:attr/buttonBarButtonStyle" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -42,7 +90,7 @@
                 android:text="@string/categor_as"
                 android:textColor="@android:color/white"
                 android:layout_marginHorizontal="8dp"
-                style="?android:attr/buttonBarButtonStyle"/>
+                style="?android:attr/buttonBarButtonStyle" />
         </LinearLayout>
 
         <FrameLayout
@@ -55,8 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="440dp"
                 app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
-                >
+                app:cardElevation="0dp">
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -130,8 +177,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            >
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -140,7 +186,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
@@ -157,7 +203,7 @@
                         android:src="@drawable/game_futbol"
                         android:scaleType="centerCrop"
                         android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"/>
+                        android:contentDescription="@null" />
 
                     <ImageView
                         android:layout_width="120dp"
@@ -165,21 +211,21 @@
                         android:src="@drawable/game_futbol"
                         android:scaleType="centerCrop"
                         android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"/>
+                        android:contentDescription="@null" />
 
                     <ImageView
                         android:layout_width="120dp"
                         android:layout_height="120dp"
                         android:scaleType="centerCrop"
                         android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"/>
+                        android:contentDescription="@null" />
 
                     <ImageView
                         android:layout_width="120dp"
                         android:layout_height="120dp"
                         android:scaleType="centerCrop"
                         android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"/>
+                        android:contentDescription="@null" />
                 </LinearLayout>
             </HorizontalScrollView>
         </LinearLayout>
@@ -191,15 +237,14 @@
             android:text="@string/series_aclamadas_por_la_cr_tica"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            android:padding="8dp"/>
+            android:padding="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/acclaimed_series_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
-
+        android:id="@+id/acclaimed_series_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -229,7 +274,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
-        <!-- Add more sections as needed -->
-
+        <!-- Otras secciones de series y contenido pueden ir aquí -->
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -6,6 +6,7 @@ import android.speech.RecognizerIntent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import com.example.netflix_clone.Model.ApiResponse;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.R;
+import com.example.netflix_clone.SearchActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +43,17 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-
         acclaimedSeriesRecyclerView = view.findViewById(R.id.acclaimed_series_recycler_view);
         dramaticSeriesRecyclerView = view.findViewById(R.id.dramatic_series_recycler_view);
         yourNextStoryRecyclerView = view.findViewById(R.id.your_next_story_recycler_view);
+        ImageButton searchButton = view.findViewById(R.id.search_button);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
         setupRecyclerViews();
 
         // Llamar a la API para obtener los datos
