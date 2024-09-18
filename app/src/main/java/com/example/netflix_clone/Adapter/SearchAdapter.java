@@ -1,6 +1,7 @@
 package com.example.netflix_clone.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.netflix_clone.DetailActivity;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.R;
 
@@ -40,10 +42,17 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
         holder.contentTitle.setText(content.getTitle());
         Glide.with(context)
                 .load(content.getPoster_path())
-                .transform(new RoundedCorners(16)) // Redondea los bordes de la imagen
+                .transform(new RoundedCorners(16))
                 .into(holder.contentImage);
 
-        // Añade un log aquí para verificar que tienes datos
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, DetailActivity.class);
+            intent.putExtra("content_title", content.getTitle());
+            intent.putExtra("content_description", content.getOverview());
+            intent.putExtra("content_image", content.getPoster_path());
+            context.startActivity(intent);
+        });
+
         Log.d("SearchAdapter", "Binding title: " + content.getTitle());
         Log.d("SearchAdapter", "Binding image path: " + content.getPoster_path());
     }
@@ -59,9 +68,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            contentImage = itemView.findViewById(R.id.imagen_recomendada); // Asegúrate de que coincida con el ID en XML
-            contentTitle = itemView.findViewById(R.id.titulo_recomendado); // Asegúrate de que coincida con el ID en XML
+            contentImage = itemView.findViewById(R.id.imagen_recomendada);
+            contentTitle = itemView.findViewById(R.id.titulo_recomendado);
         }
     }
 }
-

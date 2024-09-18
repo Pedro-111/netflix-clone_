@@ -1,8 +1,15 @@
 package com.example.netflix_clone;
 
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.netflix_clone.Fragmentos.GamesFragment;
@@ -19,12 +26,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Make the status bar transparent
+        makeStatusBarTransparent();
+
+        // Configure the Toolbar
+        setSupportActionBar(findViewById(R.id.toolbar));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(navListener);
 
-        // Cargar el fragmento de inicio por defecto
+        // Load the home fragment by default
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new HomeFragment()).commit();
+    }
+
+    private void makeStatusBarTransparent() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            WindowInsetsControllerCompat windowInsetsController =
+                    WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            if (windowInsetsController != null) {
+                windowInsetsController.setSystemBarsBehavior(
+                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                );
+                windowInsetsController.hide(WindowInsetsCompat.Type.statusBars());
+            }
+        }
     }
 
     private NavigationBarView.OnItemSelectedListener navListener =
@@ -38,11 +69,11 @@ public class MainActivity extends AppCompatActivity {
                 else if (itemId == R.id.nav_games) {
                     selectedFragment = new GamesFragment();
                 }
-//                else if (itemId == R.id.nav_new) {
-//                    selectedFragment = new NewFragment();
-//                } else if (itemId == R.id.nav_profile) {
-//                    selectedFragment = new ProfileFragment();
-//                }
+                // else if (itemId == R.id.nav_new) {
+                //     selectedFragment = new NewFragment();
+                // } else if (itemId == R.id.nav_profile) {
+                //     selectedFragment = new ProfileFragment();
+                // }
 
                 if (selectedFragment != null) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,

@@ -1,9 +1,12 @@
 package com.example.netflix_clone.Interfaz;
 
 import com.example.netflix_clone.Model.ApiResponse;
+import com.example.netflix_clone.Model.SeasonDetails;
+import com.example.netflix_clone.Model.TVShowDetails;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface TheMovieDBApi {
@@ -27,6 +30,20 @@ public interface TheMovieDBApi {
     Call<ApiResponse> searchContent(
             @Query("api_key") String apiKey,
             @Query("query") String query,
+            @Query("language") String language
+    );
+    @GET("tv/{tv_id}")
+    Call<TVShowDetails> getTVShowDetails(
+            @Path("tv_id") int tvId,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
+    @GET("tv/{tv_id}/season/{season_number}")
+    Call<SeasonDetails> getSeasonDetails(
+            @Path("tv_id") int tvId,
+            @Path("season_number") int seasonNumber,
+            @Query("api_key") String apiKey,
             @Query("language") String language
     );
 }

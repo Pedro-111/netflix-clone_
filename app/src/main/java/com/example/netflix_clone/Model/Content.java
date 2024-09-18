@@ -3,11 +3,20 @@ package com.example.netflix_clone.Model;
 import java.io.Serializable;
 
 public class Content implements Serializable {
+    private int id;
     private String name;
     private String title;
     private String overview;
     private String poster_path;
     private String mediaType;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

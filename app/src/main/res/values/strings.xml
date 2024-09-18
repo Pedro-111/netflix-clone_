@@ -13,4 +13,7 @@
     <string name="mi_lista">Mi lista</string>
     <string name="los_10_juegos_m_viles_m_s_populares">Los 10 juegos móviles más populares</string>
     <string name="t_proxima_historia">Tú proxima historia</string>
+    <string name="calificar">Calificar</string>
+    <string name="compartir">Compartir</string>
+    <string name="descargar_temporada">Descargar Temporada</string>
 </resources>
