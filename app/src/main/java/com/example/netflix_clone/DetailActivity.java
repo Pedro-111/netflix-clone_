@@ -1,6 +1,7 @@
 package com.example.netflix_clone;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -8,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
 import com.example.netflix_clone.Interfaz.TheMovieDBApi;
 import com.example.netflix_clone.Model.Content;
+import com.example.netflix_clone.Model.Episode;
 import com.example.netflix_clone.Model.Season;
 import com.example.netflix_clone.Model.SeasonDetails;
 import com.example.netflix_clone.Model.TVShowDetails;
@@ -32,13 +35,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailActivity extends AppCompatActivity {
 
+    private static final String TAG = "DetailActivity";
     private Spinner seasonSpinner;
     private RecyclerView episodesRecyclerView;
     private EpisodeAdapter episodeAdapter;
     private List<Season> seasons;
     private TheMovieDBApi api;
     private int seriesId;
-    final private String BuildConfig= "5602907b34b2750c1b27255084151c1a";
+    private final String API_KEY = "5602907b34b2750c1b27255084151c1a";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +66,7 @@ public class DetailActivity extends AppCompatActivity {
         Content content = (Content) getIntent().getSerializableExtra("content");
 
         if (content != null) {
+            Log.d(TAG, "Content received: " + content.getTitle() + ", ID: " + content.getId());
             contentTitle.setText(content.getTitle());
             contentDescription.setText(content.getOverview());
             loadImage("https://image.tmdb.org/t/p/w500" + content.getPoster_path(), contentImage);
@@ -70,10 +76,16 @@ public class DetailActivity extends AppCompatActivity {
 
             // Obtener temporadas y episodios
             fetchSeasons(this.seriesId);
+        } else {
+            Log.e(TAG, "No content received from intent");
+            Toast.makeText(this, "Error: No se pudo cargar el contenido", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
         watchButton.setOnClickListener(v -> {
-            // Lógica para reproducir el contenido
+            Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
+            // Aquí iría la lógica para reproducir el contenido
         });
 
         // Configurar RecyclerView
@@ -83,18 +95,23 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void fetchSeasons(int seriesId) {
-        api.getTVShowDetails(seriesId, BuildConfig, "es-ES").enqueue(new Callback<TVShowDetails>() {
+        api.getTVShowDetails(seriesId, API_KEY, "es-ES").enqueue(new Callback<TVShowDetails>() {
             @Override
             public void onResponse(Call<TVShowDetails> call, Response<TVShowDetails> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     seasons = response.body().getSeasons();
+                    Log.d(TAG, "Seasons fetched: " + seasons.size());
                     setupSeasonSpinner();
+                } else {
+                    Log.e(TAG, "Error fetching seasons: " + response.code());
+                    Toast.makeText(DetailActivity.this, "Error al cargar las temporadas", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<TVShowDetails> call, Throwable t) {
-                // Manejar error
+                Log.e(TAG, "Error fetching seasons", t);
+                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -121,31 +138,42 @@ public class DetailActivity extends AppCompatActivity {
         });
 
         // Seleccionar la última temporada por defecto
-        seasonSpinner.setSelection(seasons.size() - 1);
+        if (!seasons.isEmpty()) {
+            seasonSpinner.setSelection(seasons.size() - 1);
+        }
     }
 
     private void fetchEpisodes(int seasonNumber) {
-
-        api.getSeasonDetails(seriesId, seasonNumber, BuildConfig, "es-ES").enqueue(new Callback<SeasonDetails>() {
+        api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
             @Override
             public void onResponse(Call<SeasonDetails> call, Response<SeasonDetails> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    episodeAdapter.updateEpisodes(response.body().getEpisodes());
+                    List<Episode> episodes = response.body().getEpisodes();
+                    Log.d(TAG, "Episodes fetched: " + episodes.size());
+                    episodeAdapter.updateEpisodes(episodes);
+                } else {
+                    Log.e(TAG, "Error fetching episodes: " + response.code());
+                    Toast.makeText(DetailActivity.this, "Error al cargar los episodios", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SeasonDetails> call, Throwable t) {
-                // Manejar error
+                Log.e(TAG, "Error fetching episodes", t);
+                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void loadImage(String imagePath, ImageView imageView) {
         if (imagePath != null && !imagePath.isEmpty()) {
+            Log.d(TAG, "Loading image: " + imagePath);
             Glide.with(this)
                     .load(imagePath)
                     .into(imageView);
+        } else {
+            Log.e(TAG, "Invalid image path");
+            // Podrías cargar una imagen por defecto aquí
         }
     }
 }

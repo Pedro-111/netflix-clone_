@@ -21,6 +21,7 @@ import com.example.netflix_clone.R;
 import java.util.List;
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
+    private static final String TAG = "SearchAdapter";
     private List<Content> contentList;
     private Context context;
 
@@ -41,20 +42,16 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
         Content content = contentList.get(position);
         holder.contentTitle.setText(content.getTitle());
         Glide.with(context)
-                .load(content.getPoster_path())
+                .load("https://image.tmdb.org/t/p/w500" + content.getPoster_path())
                 .transform(new RoundedCorners(16))
                 .into(holder.contentImage);
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, DetailActivity.class);
-            intent.putExtra("content_title", content.getTitle());
-            intent.putExtra("content_description", content.getOverview());
-            intent.putExtra("content_image", content.getPoster_path());
+            intent.putExtra("content", content);
+            Log.d(TAG, "Sending content: " + content.getTitle() + ", ID: " + content.getId());
             context.startActivity(intent);
         });
-
-        Log.d("SearchAdapter", "Binding title: " + content.getTitle());
-        Log.d("SearchAdapter", "Binding image path: " + content.getPoster_path());
     }
 
     @Override

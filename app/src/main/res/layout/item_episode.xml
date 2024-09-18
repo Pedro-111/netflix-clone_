@@ -2,22 +2,53 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/episode_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+    <ImageView
+        android:id="@+id/episode_thumbnail"
+        android:layout_width="120dp"
+        android:layout_height="68dp"
+        android:scaleType="centerCrop" />
 
-    <TextView
-        android:id="@+id/episode_description"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="14sp" />
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="16dp">
+
+        <TextView
+            android:id="@+id/episode_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/episode_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/episode_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/episode_download"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_download"
+        android:layout_gravity="center_vertical" />
 
 </LinearLayout>
