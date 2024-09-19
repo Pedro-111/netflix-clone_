@@ -70,4 +70,7 @@ dependencies {
 
     implementation 'androidx.coordinatorlayout:coordinatorlayout:1.1.0'
 
+    // Lottie para las animaciones
+    implementation 'com.airbnb.android:lottie:5.2.0'
+
 }
