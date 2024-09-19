@@ -1,11 +1,13 @@
 package com.example.netflix_clone;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -53,6 +55,8 @@ public class DetailActivity extends AppCompatActivity {
         TextView contentTitle = findViewById(R.id.content_title);
         TextView contentDescription = findViewById(R.id.content_description);
         Button watchButton = findViewById(R.id.watch_button);
+        ImageButton searchButton = findViewById(R.id.search_button);
+        ImageView arrowBack = findViewById(R.id.arrow_back);
         seasonSpinner = findViewById(R.id.season_spinner);
         episodesRecyclerView = findViewById(R.id.episodes_recycler_view);
 
@@ -82,7 +86,21 @@ public class DetailActivity extends AppCompatActivity {
             finish();
             return;
         }
-
+        // Ir a la actividad de Search_activity
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DetailActivity.this,SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+        // Regresar a la actividad anterior
+        arrowBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         watchButton.setOnClickListener(v -> {
             Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
             // Aquí iría la lógica para reproducir el contenido

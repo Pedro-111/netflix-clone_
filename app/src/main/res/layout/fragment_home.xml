@@ -138,7 +138,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/los_10_juegos_m_viles_m_s_populares"
                     android:textColor="@android:color/white"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
 
@@ -191,6 +191,7 @@
                 android:text="@string/series_aclamadas_por_la_cr_tica"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
+                android:textStyle="bold"
                 android:padding="8dp" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -206,6 +207,7 @@
                 android:text="@string/series_dram_ticas"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
+                android:textStyle="bold"
                 android:padding="8dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -221,6 +223,7 @@
                 android:text="@string/t_proxima_historia"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
+                android:textStyle="bold"
                 android:padding="8dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -257,7 +260,7 @@
 
             <!-- Icono de Netflix -->
             <ImageView
-                android:id="@+id/logo_icon"
+                android:id="@+id/arrow_back"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_netflix_logo"
