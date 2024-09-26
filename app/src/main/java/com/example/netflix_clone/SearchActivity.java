@@ -30,7 +30,7 @@ public class SearchActivity extends AppCompatActivity {
     private SearchAdapter searchAdapter;
     private TheMovieDBApi apiService;
     private List<Content> contentList;
-    private final String API_KEY = "5602907b34b2750c1b27255084151c1a";
+    private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";
     private SearchView searchView;
     private static final long SEARCH_DELAY_MS = 300; // Delay in milliseconds
     private Handler searchHandler;

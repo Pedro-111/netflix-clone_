@@ -44,7 +44,7 @@ public class DetailActivity extends AppCompatActivity {
     private List<Season> seasons;
     private TheMovieDBApi api;
     private int seriesId;
-    private final String API_KEY = "5602907b34b2750c1b27255084151c1a";
+    private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
