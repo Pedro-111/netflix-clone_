@@ -20,7 +20,7 @@ public class SplashActivity extends AppCompatActivity {
         animationView.playAnimation();
 
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            Intent intent = new Intent(SplashActivity.this, WelcomeActivity.class);
             startActivity(intent);
             finish();
         }, 4300); // Duración de la animación en milisegundos

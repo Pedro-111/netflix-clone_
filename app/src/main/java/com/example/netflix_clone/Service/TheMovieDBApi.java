@@ -1,6 +1,6 @@
-package com.example.netflix_clone.Interfaz;
+package com.example.netflix_clone.Service;
 
-import com.example.netflix_clone.Model.ApiResponse;
+import com.example.netflix_clone.Model.Response.ApiResponse;
 import com.example.netflix_clone.Model.SeasonDetails;
 import com.example.netflix_clone.Model.TVShowDetails;
 

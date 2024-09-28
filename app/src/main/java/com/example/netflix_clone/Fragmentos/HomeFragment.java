@@ -2,21 +2,22 @@ package com.example.netflix_clone.Fragmentos;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.DetailActivity;
-import com.example.netflix_clone.Interfaz.TheMovieDBApi;
-import com.example.netflix_clone.Model.ApiResponse;
+import com.example.netflix_clone.Service.TheMovieDBApi;
+import com.example.netflix_clone.Model.Response.ApiResponse;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.R;
@@ -43,9 +44,11 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
         acclaimedSeriesRecyclerView = view.findViewById(R.id.acclaimed_series_recycler_view);
         dramaticSeriesRecyclerView = view.findViewById(R.id.dramatic_series_recycler_view);
         yourNextStoryRecyclerView = view.findViewById(R.id.your_next_story_recycler_view);
+
         ImageButton searchButton = view.findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,18 +57,21 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                 startActivity(intent);
             }
         });
+
         setupRecyclerViews();
-
-        // Llamar a la API para obtener los datos
-        fetchData();
-
+        loadData();  // Inicialmente cargamos los datos de la API
         return view;
     }
 
+    // Configuración de los RecyclerViews y adaptadores
     private void setupRecyclerViews() {
         acclaimedSeriesAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
         dramaticSeriesAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
         yourNextStoryAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
+
+        acclaimedSeriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        dramaticSeriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        yourNextStoryRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         acclaimedSeriesRecyclerView.setAdapter(acclaimedSeriesAdapter);
         dramaticSeriesRecyclerView.setAdapter(dramaticSeriesAdapter);
@@ -73,8 +79,23 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     }
 
     // Método para obtener los datos de la API
+    private void loadData() {
+        fetchData();  // Llama a la API
+    }
+
+    // Método para intentar recargar los datos si alguna lista está vacía
+    private void retryLoadingData() {
+        if (acclaimedSeriesAdapter.getItemCount() == 0 ||
+                dramaticSeriesAdapter.getItemCount() == 0 ||
+                yourNextStoryAdapter.getItemCount() == 0) {
+            Toast.makeText(getContext(), "Reintentando cargar los datos...", Toast.LENGTH_SHORT).show();
+            fetchData();
+        }
+    }
+
+    // Método para obtener los datos de la API
     private void fetchData() {
-        TheMovieDBApi apiService = RetrofitClient.getClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
+        TheMovieDBApi apiService = RetrofitClient.getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
 
         // Llamada a Series Aclamadas
         apiService.getTopRatedSeries(API_KEY, "es-ES").enqueue(new Callback<ApiResponse>() {
@@ -88,7 +109,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                // Manejar el error
+                Toast.makeText(getActivity(), "Error al cargar series aclamadas", Toast.LENGTH_SHORT).show();
+                retryLoadingData();  // Reintentar la carga si falla
             }
         });
 
@@ -104,7 +126,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                // Manejar el error
+                Toast.makeText(getActivity(), "Error al cargar series dramáticas", Toast.LENGTH_SHORT).show();
+                retryLoadingData();  // Reintentar la carga si falla
             }
         });
 
@@ -120,7 +143,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                // Manejar el error
+                Toast.makeText(getActivity(), "Error al cargar tu próxima historia", Toast.LENGTH_SHORT).show();
+                retryLoadingData();  // Reintentar la carga si falla
             }
         });
     }
@@ -131,5 +155,4 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         intent.putExtra("content", content);
         startActivity(intent);
     }
-
 }

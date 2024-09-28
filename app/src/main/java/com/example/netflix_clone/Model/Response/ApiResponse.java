@@ -1,4 +1,6 @@
-package com.example.netflix_clone.Model;
+package com.example.netflix_clone.Model.Response;
+
+import com.example.netflix_clone.Model.Content;
 
 import java.util.List;
 

@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
-import com.example.netflix_clone.Interfaz.TheMovieDBApi;
+import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.Episode;
 import com.example.netflix_clone.Model.Season;

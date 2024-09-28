@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.SearchAdapter;
-import com.example.netflix_clone.Interfaz.TheMovieDBApi;
-import com.example.netflix_clone.Model.ApiResponse;
+import com.example.netflix_clone.Service.TheMovieDBApi;
+import com.example.netflix_clone.Model.Response.ApiResponse;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.RetrofitClient;
 
@@ -49,7 +49,7 @@ public class SearchActivity extends AppCompatActivity {
         recommendedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         recommendedRecyclerView.setAdapter(searchAdapter);
 
-        apiService = RetrofitClient.getClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
+        apiService = RetrofitClient.getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
         searchHandler = new Handler(Looper.getMainLooper());
 
         fetchRecommendedContent();

@@ -1,4 +1,4 @@
-plugins {
+    plugins {
     alias(libs.plugins.android.application)
 }
 
@@ -72,5 +72,11 @@ dependencies {
 
     // Lottie para las animaciones
     implementation 'com.airbnb.android:lottie:5.2.0'
+
+    // Circle indicator para los puntos de ImagePager
+    implementation 'me.relex:circleindicator:2.1.6'
+
+    //
+    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
 
 }

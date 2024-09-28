@@ -29,11 +29,6 @@ public class MainActivity extends AppCompatActivity {
         // Make the status bar transparent
         makeStatusBarTransparent();
 
-        // Configure the Toolbar
-        setSupportActionBar(findViewById(R.id.toolbar));
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
-        }
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(navListener);
