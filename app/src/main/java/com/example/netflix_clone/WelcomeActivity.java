@@ -2,12 +2,15 @@ package com.example.netflix_clone;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,7 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.netflix_clone.Adapter.ImagePagerAdapter;
+import com.example.netflix_clone.Model.Request.TokenRequest;
 import com.example.netflix_clone.Model.Response.PerfilResponse;
+import com.example.netflix_clone.Model.Response.TokenResponse;
 import com.example.netflix_clone.Model.Response.TokenValidationResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Service.AuthServiceApi;
@@ -142,6 +147,7 @@ public class WelcomeActivity extends AppCompatActivity {
         }
         verificarSesion();
     }
+
     private void verificarSesion() {
         Log.d(TAG, "verificarSesion: Iniciando verificación de sesión");
         if (sharedPreferences == null) {
@@ -162,27 +168,90 @@ public class WelcomeActivity extends AppCompatActivity {
                         Log.d(TAG, "verificarSesion: Token válido, iniciando MainActivity");
                         iniciarMainActivity();
                     } else {
-                        Log.d(TAG, "verificarSesion: Token inválido");
-                        sharedPreferences.edit().remove("token").apply();
-                        // Opcional: Mostrar un mensaje al usuario
-                        Toast.makeText(WelcomeActivity.this, "Sesión expirada, por favor inicie sesión nuevamente", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "verificarSesion: Token inválido o expirado, intentando renovar");
+                        renovarToken();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<TokenValidationResponse> call, Throwable t) {
                     Log.e(TAG, "verificarSesion: Error de red", t);
-                    // Opcional: Mostrar un mensaje al usuario
-                    // Toast.makeText(WelcomeActivity.this, "Error de conexión, por favor intente más tarde", Toast.LENGTH_SHORT).show();
+                    // Manejo de errores de red, como mostrar un mensaje al usuario
                 }
             });
         } else {
             Log.d(TAG, "verificarSesion: No hay token, permaneciendo en WelcomeActivity");
-            Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-
-
         }
     }
+
+    private void renovarToken() {
+        String tokenExpirado = sharedPreferences.getString("token",null);
+        String refreshToken = sharedPreferences.getString("refreshToken", null);
+        if (refreshToken != null) {
+            Call<TokenResponse> call = authServiceApi.renovarAcceso(new TokenRequest(tokenExpirado, refreshToken));
+            call.enqueue(new Callback<TokenResponse>() {
+                @Override
+                public void onResponse(Call<TokenResponse> call, Response<TokenResponse> response) {
+                    Log.d(TAG,"Codigo HTTP"+response.code());
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        String nuevoToken = response.body().getToken();
+                        String nuevoRefreshToken = response.body().getRefreshToken();
+                        sharedPreferences.edit().putString("token", nuevoToken).apply();
+                        sharedPreferences.edit().putString("refreshToken", nuevoRefreshToken).apply();
+                        Log.d(TAG, "renovarToken: Token renovado con éxito, iniciando MainActivity");
+                        iniciarMainActivity();
+                    } else {
+                        Log.d(TAG, "renovarToken: No se pudo renovar el token, redirigiendo a LoginActivity");
+                        redirigirALogin();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<TokenResponse> call, Throwable t) {
+                    Log.e(TAG, "renovarToken: Error de red al intentar renovar el token", t);
+                    redirigirALogin();
+                }
+            });
+        } else {
+            redirigirALogin();
+        }
+    }
+
+    private void redirigirALogin() {
+        sharedPreferences.edit().remove("token").remove("refreshToken").apply();
+        Toast.makeText(this, "Sesión expirada, por favor inicie sesión nuevamente", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+    private void showCustomDialog() {
+        final Dialog dialog = new Dialog(WelcomeActivity.this);
+        dialog.setContentView(R.layout.dialog_registrar_cuenta_email);
+
+        // Botón de cerrar
+        TextView closeButton = dialog.findViewById(R.id.closeButton);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();  // Cerrar el diálogo
+            }
+        });
+
+        // Botón de enviar
+        Button submitButton = dialog.findViewById(R.id.submitButton);
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText emailInput = dialog.findViewById(R.id.emailInput);
+                String email = emailInput.getText().toString();
+
+                // Aquí puedes manejar el envío del email
+                // Por ejemplo, verificar si es válido o guardar la información
+            }
+        });
+
+        // Mostrar el diálogo
+        dialog.show();
+    }
+
 }

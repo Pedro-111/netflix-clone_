@@ -1,6 +1,9 @@
 package com.example.netflix_clone.Interceptor;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.netflix_clone.Model.Request.TokenRequest;
@@ -25,7 +28,7 @@ public class TokenInterceptor implements Interceptor {
     }
     @Override
     public Response intercept(Chain chain) throws IOException {
-
+        Log.d(TAG, "TokenInterceptor: Interceptando solicitud...");
         Request originalRequest = chain.request();
         String token =sharedPreferences.getString("token",null);
 
@@ -48,7 +51,9 @@ public class TokenInterceptor implements Interceptor {
                     retrofit2.Response<TokenResponse> refreshResponse  = call.execute();
                     if(refreshResponse.isSuccessful() && refreshResponse.body() !=null && refreshResponse.body().isSuccess()){
                         String newToken = refreshResponse.body().getToken();
+                        String newRefreshToken = refreshResponse.body().getRefreshToken();
                         sharedPreferences.edit().putString("token",newToken).apply();
+                        sharedPreferences.edit().putString("refreshToken",newRefreshToken).apply();
 
                         Request newRequest = originalRequest.newBuilder()
                                 .header("Authorization","Bearer "+newToken)

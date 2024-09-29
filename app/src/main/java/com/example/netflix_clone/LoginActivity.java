@@ -28,6 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText emailField, passwordField;
     private Button login, signupButton, forgotPasswordButton;
     private SharedPreferences sharedPreferences;
+    private ImageButton backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +36,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Botón de retroceso
-        ImageButton backButton = findViewById(R.id.backButton);
-        backButton.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        });
+        backButton = findViewById(R.id.backButton);
+
 
         // Otros botones y funcionalidad
         forgotPasswordButton = findViewById(R.id.forgotPasswordButton);
@@ -49,12 +46,25 @@ public class LoginActivity extends AppCompatActivity {
         emailField = findViewById(R.id.emailField);
         passwordField = findViewById(R.id.passwordField);
         sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
+        setButtons();
 
+    }
+    private void setButtons(){
+        backButton.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 performLogin();
             }
+        });
+        signupButton.setOnClickListener(v->{
+            Intent intent = new Intent(LoginActivity.this,WelcomeActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 

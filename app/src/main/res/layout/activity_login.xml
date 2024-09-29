@@ -41,7 +41,7 @@
             app:hintEnabled="true"
             app:hintAnimationEnabled="true"
             app:boxStrokeColor="@color/red"
-            android:backgroundTint="@color/white"
+            app:boxBackgroundColor="@android:color/black"
             app:hintTextColor="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -62,7 +62,7 @@
             app:hintEnabled="true"
             app:hintAnimationEnabled="true"
             app:boxStrokeColor="@color/red"
-            android:backgroundTint="@color/black"
+            app:boxBackgroundColor="@android:color/black"
             app:hintTextColor="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
