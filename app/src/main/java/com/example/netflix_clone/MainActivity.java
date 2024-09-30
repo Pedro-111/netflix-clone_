@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         // Load the home fragment by default
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new HomeFragment()).commit();
-    }
+}
 
     private void makeStatusBarTransparent() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

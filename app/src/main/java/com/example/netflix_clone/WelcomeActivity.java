@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,15 +21,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.netflix_clone.Adapter.ImagePagerAdapter;
+import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
+import com.example.netflix_clone.Model.Request.RegisterRequest;
 import com.example.netflix_clone.Model.Request.TokenRequest;
-import com.example.netflix_clone.Model.Response.PerfilResponse;
+import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
+import com.example.netflix_clone.Model.Response.RegisterResponse;
 import com.example.netflix_clone.Model.Response.TokenResponse;
 import com.example.netflix_clone.Model.Response.TokenValidationResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Service.AuthServiceApi;
-import com.example.netflix_clone.Service.PerfilServiceApi;
-
-import java.util.List;
 
 import me.relex.circleindicator.CircleIndicator;
 import retrofit2.Call;
@@ -38,9 +41,11 @@ public class WelcomeActivity extends AppCompatActivity {
     private int[] imagenesIds = {R.drawable.imagen_cartelera, R.drawable.imagen_welcome_2, R.drawable.imagen_welcome_3, R.drawable.imagen_welcome_4};
     private ImagePagerAdapter adapter;
     private TextView title1, title2, title3, subtitle, subtitle2;
-    private TextView iniciarSesion,privacidad;
+    private TextView iniciarSesion, privacidad;
     private SharedPreferences sharedPreferences;
     private AuthServiceApi authServiceApi;
+    private Button startButton;
+    private EditText emailInput,passwordInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +69,7 @@ public class WelcomeActivity extends AppCompatActivity {
         iniciarSesion = findViewById(R.id.inicioSesion);
         viewPager = findViewById(R.id.viewPager);
         privacidad = findViewById(R.id.privacidad);
+        startButton = findViewById(R.id.startButton);
     }
 
     private void setupViewPager() {
@@ -95,23 +101,34 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        iniciarSesion.setOnClickListener(v -> {
-            Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        });
-        privacidad.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://help.netflix.com/legal/privacy?netflixsource=android&fromApp=true"));
-            startActivity(intent);
-        });
+        if (iniciarSesion != null) {
+            iniciarSesion.setOnClickListener(v -> {
+                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        if (privacidad != null) {
+            privacidad.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse("https://help.netflix.com/legal/privacy?netflixsource=android&fromApp=true"));
+                startActivity(intent);
+            });
+        }
+
+        if (startButton != null) {
+            startButton.setOnClickListener(v -> {
+                showCustomDialog();
+            });
+        } else {
+            Log.e(TAG, "setupListeners: startButton is null");
+        }
     }
 
     private void iniciarMainActivity() {
         Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-
     }
 
     private void updateTextsForPage(int position) {
@@ -132,11 +149,11 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     private void updateTexts(String text1, String text2, String text3, String subText1, String subText2) {
-        title1.setText(text1);
-        title2.setText(text2);
-        title3.setText(text3);
-        subtitle.setText(subText1);
-        subtitle2.setText(subText2);
+        if (title1 != null) title1.setText(text1);
+        if (title2 != null) title2.setText(text2);
+        if (title3 != null) title3.setText(text3);
+        if (subtitle != null) subtitle.setText(subText1);
+        if (subtitle2 != null) subtitle2.setText(subText2);
     }
 
     @Override
@@ -221,37 +238,157 @@ public class WelcomeActivity extends AppCompatActivity {
         sharedPreferences.edit().remove("token").remove("refreshToken").apply();
         Toast.makeText(this, "Sesión expirada, por favor inicie sesión nuevamente", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
-    private void showCustomDialog() {
-        final Dialog dialog = new Dialog(WelcomeActivity.this);
-        dialog.setContentView(R.layout.dialog_registrar_cuenta_email);
 
-        // Botón de cerrar
-        TextView closeButton = dialog.findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
+
+    private void verificarEmailCreado(String email,String password) {
+        if (email == null || password == null || email.isEmpty() || password.isEmpty()) {
+            Log.e(TAG, "verificarEmailCreado: email or password is null or empty");
+            Toast.makeText(WelcomeActivity.this, "Por favor, ingrese email y contraseña", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        email = emailInput.getText().toString();
+        password = passwordInput.getText().toString();
+        RegisterRequest usuario = new RegisterRequest("", email, password);
+        Call<RegisterResponse> call = authServiceApi.registrarUsuario(usuario);
+        String finalEmail = email;
+        call.enqueue(new Callback<RegisterResponse>() {
             @Override
-            public void onClick(View v) {
-                dialog.dismiss();  // Cerrar el diálogo
+            public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isDuplicate()) {
+                        // Si el correo es duplicado ya existe y se redirige a Iniciar Sesión
+                        redirigirALogin();
+                    } else {
+                        // Aquí abrimos el segundo diálogo sin cerrar el primero
+                        showEmailConfirmationDialog(finalEmail);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RegisterResponse> call, Throwable throwable) {
+                Log.e(TAG, "verificarEmailCreado: Error en la llamada a la API", throwable);
+                Toast.makeText(WelcomeActivity.this, "Error al verificar el email. Intente nuevamente.", Toast.LENGTH_SHORT).show();
             }
         });
-
-        // Botón de enviar
-        Button submitButton = dialog.findViewById(R.id.submitButton);
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText emailInput = dialog.findViewById(R.id.emailInput);
-                String email = emailInput.getText().toString();
-
-                // Aquí puedes manejar el envío del email
-                // Por ejemplo, verificar si es válido o guardar la información
-            }
-        });
-
-        // Mostrar el diálogo
-        dialog.show();
     }
 
+    private void showCustomDialog() {
+        final Dialog dialog = new Dialog(WelcomeActivity.this, R.style.FullScreenDialogStyle);
+        dialog.setContentView(R.layout.dialog_registrar_cuenta_email);
+
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+//        emailInput = dialog.findViewById(R.id.emailInput);
+//        passwordInput = dialog.findViewById(R.id.passwordField);
+
+        TextView closeButton = dialog.findViewById(R.id.closeButton);
+        if (closeButton != null) {
+            closeButton.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        Button submitButton = dialog.findViewById(R.id.submitButton);
+        if (submitButton != null) {
+            submitButton.setOnClickListener(v -> {
+                emailInput = dialog.findViewById(R.id.emailInput);
+                passwordInput = dialog.findViewById(R.id.passswordInput);
+
+                if (emailInput != null && passwordInput != null) {
+                    verificarEmailCreado(emailInput.getText().toString(), passwordInput.getText().toString());
+                } else {
+                    if (emailInput == null) {
+                        Log.e(TAG, "showCustomDialog: emailInput is null");
+                    }
+                    if (passwordInput == null) {
+                        Log.e(TAG, "showCustomDialog: passwordInput is null");
+                    }
+                }
+            });
+        }
+
+        dialog.show();
+    }
+    private void showEmailConfirmationDialog(String email) {
+        final Dialog dialog = new Dialog(WelcomeActivity.this, R.style.FullScreenDialogStyle);
+        dialog.setContentView(R.layout.dialog_confirmacion_email);
+
+        TextView emailSentText = dialog.findViewById(R.id.emailSentText);
+        Button confirmarCodigoButton = dialog.findViewById(R.id.boton_de_confirmacion);
+        EditText codigoInput = dialog.findViewById(R.id.codigoDeConfirmacion);
+
+        if (emailSentText != null) {
+            String message = "¡Ya casi terminamos! Te enviamos un email a " + email;
+            SpannableString spannableString = new SpannableString(message);
+
+            int emailStart = message.indexOf(email);
+            int emailEnd = emailStart + email.length();
+            spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), emailStart, emailEnd, 0);
+
+            emailSentText.setText(spannableString);
+        }
+
+        if (confirmarCodigoButton != null && codigoInput != null) {
+            confirmarCodigoButton.setOnClickListener(v -> {
+                confirmarCorreo(email, codigoInput.getText().toString());
+            });
+        }
+
+        TextView helpText = dialog.findViewById(R.id.helpText);
+        if (helpText != null) {
+            helpText.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://help.netflix.com"));
+                startActivity(intent);
+            });
+        }
+
+        TextView loginText = dialog.findViewById(R.id.loginText);
+        if (loginText != null) {
+            loginText.setOnClickListener(v -> {
+                redirigirALogin();
+            });
+        }
+
+        Button continueButton = dialog.findViewById(R.id.continueButton);
+        if (continueButton != null) {
+            continueButton.setOnClickListener(v -> {
+                Intent emailIntent = new Intent(Intent.ACTION_MAIN);
+                emailIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                try {
+                    startActivity(Intent.createChooser(emailIntent, "Elige una aplicación de correo"));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(WelcomeActivity.this, "No hay aplicaciones de correo instaladas.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        dialog.show();
+    }
+    private void confirmarCorreo(String correo,String codigo){
+        ConfirmarCorreoRequest confirmarCorreoRequest = new ConfirmarCorreoRequest(correo,codigo);
+        Call<ConfirmarCorreoResponse> call = authServiceApi.confirmarCorreo(confirmarCorreoRequest);
+        call.enqueue(new Callback<ConfirmarCorreoResponse>() {
+            @Override
+            public void onResponse(Call<ConfirmarCorreoResponse> call, Response<ConfirmarCorreoResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if(response.body().isSuccess()){
+                        Toast.makeText(WelcomeActivity.this,response.body().getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WelcomeActivity.this,"Redirigiendo a Iniciar Sesión",Toast.LENGTH_SHORT).show();
+                        redirigirALogin();
+                    }else{
+                        Toast.makeText(WelcomeActivity.this,response.body().getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ConfirmarCorreoResponse> call, Throwable throwable) {
+                Toast.makeText(WelcomeActivity.this,"Error. "+throwable.getMessage().toString(),Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

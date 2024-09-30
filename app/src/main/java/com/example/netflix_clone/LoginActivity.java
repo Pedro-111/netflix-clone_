@@ -2,14 +2,19 @@ package com.example.netflix_clone;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +31,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText emailField, passwordField;
-    private Button login, signupButton, forgotPasswordButton;
+    private Button login, signupButton, forgotPasswordButton,confirmarCorreo,continueButton;
     private SharedPreferences sharedPreferences;
     private ImageButton backButton;
 
@@ -45,6 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         login = findViewById(R.id.loginButton);
         emailField = findViewById(R.id.emailField);
         passwordField = findViewById(R.id.passwordField);
+        confirmarCorreo = findViewById(R.id.confirmacionCorreo);
         sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
         setButtons();
 
@@ -54,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
+            finish();
         });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,8 +73,70 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+        confirmarCorreo.setOnClickListener(v->{
+            if(emailField!=null) {
+                showEmailConfirmationDialog(emailField.getText().toString());
+            }else{
+                Toast.makeText(LoginActivity.this,"Email requerido",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+    private void showEmailConfirmationDialog(String email) {
+        final Dialog dialog = new Dialog(LoginActivity.this,R.style.FullScreenDialogStyle);
+        dialog.setContentView(R.layout.dialog_confirmacion_email);
 
+        TextView emailSentText = dialog.findViewById(R.id.emailSentText);
+        if (emailSentText != null) {
+            String message = "¡Ya casi terminamos! Te enviamos un email a " + email;
+            SpannableString spannableString = new SpannableString(message);
+
+            int emailStart = message.indexOf(email);
+            int emailEnd = emailStart + email.length();
+            spannableString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), emailStart, emailEnd, 0);
+
+            emailSentText.setText(spannableString);
+        }
+
+        TextView helpText = dialog.findViewById(R.id.helpText);
+        if (helpText != null) {
+            helpText.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://help.netflix.com"));
+                startActivity(intent);
+            });
+        }
+
+        TextView loginText = dialog.findViewById(R.id.loginText);
+        if (loginText != null) {
+            loginText.setOnClickListener(v -> {
+                redirigirALogin();
+            });
+        }
+
+        continueButton = dialog.findViewById(R.id.continueButton);
+        if (continueButton != null) {
+            continueButton.setOnClickListener(v -> {
+                Intent emailIntent = new Intent(Intent.ACTION_MAIN);
+                emailIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                try {
+                    startActivity(Intent.createChooser(emailIntent, "Elige una aplicación de correo"));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(LoginActivity.this, "No hay aplicaciones de correo instaladas.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+
+        dialog.show();
+    }
+    private void redirigirALogin() {
+        sharedPreferences.edit().remove("token").remove("refreshToken").apply();
+        Toast.makeText(this, "Sesión expirada, por favor inicie sesión nuevamente", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
     private void performLogin() {
         String correo = emailField.getText().toString().trim();
         String clave = passwordField.getText().toString().trim();
@@ -95,7 +164,7 @@ public class LoginActivity extends AppCompatActivity {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
-
+                        finish();
                     } else {
                         Toast.makeText(LoginActivity.this, "Correo o Contraseña Incorrectos " + loginResponse.isSuccess(), Toast.LENGTH_SHORT).show();
                     }
@@ -110,4 +179,5 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 }

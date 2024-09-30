@@ -62,7 +62,7 @@
             app:hintEnabled="true"
             app:hintAnimationEnabled="true"
             app:boxStrokeColor="@color/red"
-            app:boxBackgroundColor="@android:color/black"
+            app:boxBackgroundColor="@color/white"
             app:hintTextColor="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -72,7 +72,7 @@
                 android:hint="Contraseña"
                 android:inputType="textPassword"
                 android:textColorHint="@color/white"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:padding="10dp"
                 android:background="@android:color/transparent" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -94,7 +94,18 @@
             android:layout_gravity="center"
             android:textColor="@android:color/white"
             android:background="@android:color/transparent"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            />
+        <Button
+            android:id="@+id/confirmacionCorreo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirmación de Correo"
+            android:layout_gravity="center"
+            android:textColor="@android:color/white"
+            android:background="@android:color/transparent"
+            android:layout_marginTop="16dp"
+            />
 
         <Button
             android:id="@+id/signupButton"

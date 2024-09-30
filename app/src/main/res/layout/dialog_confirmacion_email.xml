@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@android:color/white">
+
+    <!-- Toolbar con logo de Netflix y textos de ayuda y iniciar sesión -->
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/white"
+        android:elevation="4dp">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_netflix_letra_logo"
+            android:contentDescription="Logo de Netflix" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/helpText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AYUDA"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                android:paddingEnd="16dp" />
+
+            <TextView
+                android:id="@+id/loginText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INICIAR SESIÓN"
+                android:textColor="@android:color/black"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Texto principal -->
+    <TextView
+        android:id="@+id/subscriptionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Completa la suscripción para comenzar a ver Netflix"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="12dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp" />
+
+    <!-- Subtexto -->
+    <TextView
+        android:id="@+id/emailSentText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¡Ya casi terminamos! Te enviamos un email a [email]"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp" />
+
+    <!-- Texto de advertencia -->
+    <TextView
+        android:id="@+id/finalText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="En breve podrás ver tus series y películas favoritas."
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp" />
+
+    <!-- Cuadro de texto para el código de 6 dígitos -->
+    <EditText
+        android:id="@+id/codigoDeConfirmacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Ingrese el código de 6 dígitos"
+        android:maxLength="6"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:letterSpacing="0.2"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:inputType="text" />
+
+
+
+    <!-- Botón para confirmar el código -->
+    <Button
+        android:id="@+id/boton_de_confirmacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/colorDarkGray"
+        android:text="Confirmar código"
+        android:textColor="@android:color/white" />
+
+    <!-- Botón para continuar -->
+    <Button
+        android:id="@+id/continueButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/red"
+        android:text="Continuar al email"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>

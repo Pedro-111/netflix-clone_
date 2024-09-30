@@ -51,9 +51,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Email"
+        android:textColorHint="@color/gray"
         android:inputType="textEmailAddress"
         android:layout_marginTop="20dp"
         android:padding="10dp"
+        android:textColor="@color/black"
+        android:background="@android:drawable/edit_text" />
+    <!-- Campo de texto para password -->
+    <EditText
+        android:id="@+id/passswordInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Contraseña"
+        android:textColorHint="@color/gray"
+        android:inputType="textPassword"
+        android:layout_marginTop="20dp"
+        android:padding="10dp"
+        android:textColor="@color/black"
         android:background="@android:drawable/edit_text" />
 
     <!-- Botón de acción -->

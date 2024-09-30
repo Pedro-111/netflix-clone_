@@ -1,8 +1,12 @@
 package com.example.netflix_clone.Service;
 
+import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.LoginRequest;
+import com.example.netflix_clone.Model.Request.RegisterRequest;
 import com.example.netflix_clone.Model.Request.TokenRequest;
+import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
 import com.example.netflix_clone.Model.Response.LoginResponse;
+import com.example.netflix_clone.Model.Response.RegisterResponse;
 import com.example.netflix_clone.Model.Response.TokenResponse;
 import com.example.netflix_clone.Model.Response.TokenValidationResponse;
 
@@ -21,4 +25,10 @@ public interface AuthServiceApi {
 
     @GET("/api/Acceso/ValidarToken")
     Call<TokenValidationResponse> validarToken(@Query("token") String token);
+
+    @POST("/api/Acceso/Registrarse")
+    Call<RegisterResponse> registrarUsuario(@Body RegisterRequest registerRequest);
+
+    @POST("/api/Acceso/ConfirmarCorreo")
+    Call<ConfirmarCorreoResponse> confirmarCorreo(@Body ConfirmarCorreoRequest confirmarCorreoRequest);
 }
