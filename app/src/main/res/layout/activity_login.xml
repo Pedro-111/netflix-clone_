@@ -41,8 +41,11 @@
             app:hintEnabled="true"
             app:hintAnimationEnabled="true"
             app:boxStrokeColor="@color/red"
-            app:boxBackgroundColor="@android:color/black"
-            app:hintTextColor="@color/white">
+            app:boxBackgroundColor="@android:color/transparent"
+            app:hintTextColor="@color/white"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/emailField"
@@ -51,8 +54,10 @@
                 android:hint="Email"
                 android:textColorHint="@color/white"
                 android:textColor="@android:color/white"
-                android:padding="10dp"
-                android:background="@android:color/transparent" />
+                android:paddingVertical="10dp"
+                android:paddingHorizontal="8dp"
+                android:background="@android:color/transparent"
+                android:textCursorDrawable="@null" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -62,8 +67,13 @@
             app:hintEnabled="true"
             app:hintAnimationEnabled="true"
             app:boxStrokeColor="@color/red"
-            app:boxBackgroundColor="@color/white"
-            app:hintTextColor="@color/white">
+            app:boxBackgroundColor="@android:color/transparent"
+            app:hintTextColor="@color/white"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/passwordField"
@@ -72,9 +82,11 @@
                 android:hint="Contraseña"
                 android:inputType="textPassword"
                 android:textColorHint="@color/white"
-                android:textColor="@color/white"
-                android:padding="10dp"
-                android:background="@android:color/transparent" />
+                android:textColor="@android:color/white"
+                android:paddingVertical="10dp"
+                android:paddingHorizontal="8dp"
+                android:background="@android:color/transparent"
+                android:textCursorDrawable="@null" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -94,8 +106,8 @@
             android:layout_gravity="center"
             android:textColor="@android:color/white"
             android:background="@android:color/transparent"
-            android:layout_marginTop="16dp"
-            />
+            android:layout_marginTop="16dp" />
+
         <Button
             android:id="@+id/confirmacionCorreo"
             android:layout_width="wrap_content"
@@ -104,8 +116,7 @@
             android:layout_gravity="center"
             android:textColor="@android:color/white"
             android:background="@android:color/transparent"
-            android:layout_marginTop="16dp"
-            />
+            android:layout_marginTop="16dp" />
 
         <Button
             android:id="@+id/signupButton"
