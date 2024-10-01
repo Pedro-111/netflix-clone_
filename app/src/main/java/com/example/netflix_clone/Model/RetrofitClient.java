@@ -62,6 +62,11 @@ public class RetrofitClient {
         return getAuthClient("https://apilogin.somee.com", context).create(AuthServiceApi.class);
     }
 
+//    // Método para obtener el servicio AuthServiceApi
+//    public static AuthServiceApi getAuthServiceApi(Context context) {
+//        return getAuthClient("https://apilogin.somee.com", context).create(AuthServiceApi.class);
+//    }
+
     // Método para obtener el servicio TheMovieServiceApi (sin interceptor)
     public static TheMovieDBApi getMovieServiceApi() {
         return getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);

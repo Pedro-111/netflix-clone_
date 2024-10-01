@@ -117,6 +117,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private void verificarSesion() {
         String token = sharedPreferences.getString("token", null);
+
         if (token != null) {
             // Hay un token, asumimos que la sesión es válida
             // El interceptor se encargará de renovar el token si es necesario
