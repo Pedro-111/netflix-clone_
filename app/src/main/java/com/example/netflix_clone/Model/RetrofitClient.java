@@ -1,15 +1,13 @@
 package com.example.netflix_clone.Model;
 
-
 import android.content.Context;
-
 import com.example.netflix_clone.Interceptor.TokenInterceptor;
 import com.example.netflix_clone.Service.AuthServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
-
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import android.content.SharedPreferences;
 
 public class RetrofitClient {
 
@@ -19,10 +17,11 @@ public class RetrofitClient {
     // Cliente Retrofit con interceptor para AuthServiceApi
     public static Retrofit getAuthClient(String baseUrl, Context context) {
         if (retrofitAuth == null) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+            AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
+
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .addInterceptor(new TokenInterceptor(
-                            context.getSharedPreferences("MyApp", Context.MODE_PRIVATE),
-                            createAuthApiService(baseUrl)))
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
                     .build();
 
             retrofitAuth = new Retrofit.Builder()
@@ -49,8 +48,8 @@ public class RetrofitClient {
         return retrofitMovie;
     }
 
-    // Servicio de API de autenticación (con interceptor)
-    private static AuthServiceApi createAuthApiService(String baseUrl) {
+    // Servicio temporal de API de autenticación (sin interceptor)
+    private static AuthServiceApi createTempAuthApiService(String baseUrl) {
         Retrofit tempRetrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -60,7 +59,7 @@ public class RetrofitClient {
 
     // Método para obtener el servicio AuthServiceApi
     public static AuthServiceApi getAuthServiceApi(Context context) {
-        return getAuthClient("http://apilogin.somee.com", context).create(AuthServiceApi.class);
+        return getAuthClient("https://apilogin.somee.com", context).create(AuthServiceApi.class);
     }
 
     // Método para obtener el servicio TheMovieServiceApi (sin interceptor)
