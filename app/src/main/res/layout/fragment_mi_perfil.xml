@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <!-- NestedScrollView para el contenido desplazable -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <!-- AppBarLayout para contener el Toolbar -->
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:fitsSystemWindows="true"
+                app:elevation="0dp">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar_mi_perfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@android:color/transparent"
+                    app:layout_collapseMode="pin"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
+
+                    <TextView
+                        android:id="@+id/textMiPerfil"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mi Netflix"
+                        android:textColor="@android:color/white"
+                        android:padding="10dp"
+                        android:textStyle="bold"
+                        android:textSize="16sp" />
+
+                    <!-- Contenedor para los botones -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="16dp">
+
+                        <!-- Botón de Búsqueda -->
+                        <ImageButton
+                            android:id="@+id/search_button_mi_perfil"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_search"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/search" />
+                        <!-- Botón de Descarga -->
+                        <ImageButton
+                            android:id="@+id/menu_mi_perfil"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:src="@drawable/ic_menu"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/download"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+                </androidx.appcompat.widget.Toolbar>
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <!-- CardView para la imagen redondeada -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <ImageView
+                    android:id="@+id/imagen_perfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    />
+            </androidx.cardview.widget.CardView>
+
+            <!-- LinearLayout para el nombre y el icono -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="center"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/textNombre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre del Usuario"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:id="@+id/icono"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_down"
+                    android:contentDescription="Icono del usuario" />
+            </LinearLayout>
+
+            <!-- LinearLayout para el icono de notificaciones y el texto -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <!-- Icono de notificaciones -->
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_circle_notifications"
+                    android:contentDescription="Icono de notificaciones"
+                    android:layout_marginEnd="16dp" />
+
+                <!-- Texto de Notificaciones -->
+                <TextView
+                    android:id="@+id/textNotificaciones"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notificaciones"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Aquí puedes agregar contenido debajo de Notificaciones -->
+            <TextView
+                android:id="@+id/contenido_bajo_notificaciones"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aquí va el contenido debajo de Notificaciones"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:padding="16dp" />
+
+            <!-- LinearLayout para el icono de descargas y el texto -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:gravity="center_vertical">
+
+                <!-- Icono de descargas -->
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_download_for_offline"
+                    android:contentDescription="Icono de descargas"
+                    android:layout_marginEnd="16dp" />
+
+                <!-- Texto de Descargas -->
+                <TextView
+                    android:id="@+id/textDescargas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Descargas"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/contenido_bajo_descargas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aquí va el contenido debajo de Descargas"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:padding="16dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

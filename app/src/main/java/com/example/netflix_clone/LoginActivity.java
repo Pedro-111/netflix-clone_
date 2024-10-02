@@ -17,8 +17,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.netflix_clone.Adapter.PerfilAdapter;
 import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.LoginRequest;
 import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
@@ -26,6 +30,8 @@ import com.example.netflix_clone.Model.Response.LoginResponse;
 import com.example.netflix_clone.Model.Response.TokenResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Service.AuthServiceApi;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -157,7 +163,8 @@ public class LoginActivity extends AppCompatActivity {
                     LoginResponse loginResponse = response.body();
                     if (loginResponse.isSuccess()) {
                         saveTokens(loginResponse.getToken(), loginResponse.getRefreshToken());
-                        navigateToMain();
+                        mostrarPerfiles(loginResponse.getPerfiles());
+
                     } else {
                         Toast.makeText(LoginActivity.this, "Correo o Contraseña Incorrectos", Toast.LENGTH_SHORT).show();
                     }
@@ -172,6 +179,34 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+    private void mostrarPerfiles(List<LoginResponse.Perfil> perfiles) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_seleccionar_perfil, null);
+        builder.setView(view);
+
+        RecyclerView recyclerView = view.findViewById(R.id.perfilesRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        AlertDialog dialog = builder.create(); // Moved this line above the lambda function
+
+        PerfilAdapter adapter = new PerfilAdapter(perfiles, perfil -> {
+            guardarPerfilSeleccionado(perfil.getId());
+            navigateToMain();
+            dialog.dismiss(); // Now, 'dialog' is available here
+        });
+
+        recyclerView.setAdapter(adapter);
+
+        dialog.show();
+    }
+
+    private void guardarPerfilSeleccionado(int idPerfil) {
+        SharedPreferences prefs = getSharedPreferences("MiApp", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt("idPerfilSeleccionado", idPerfil);
+        editor.apply();
+    }
+
 
     private void saveTokens(String token, String refreshToken) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -179,6 +214,7 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString("refreshToken", refreshToken);
         editor.apply();
     }
+
 
     private void navigateToMain() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
