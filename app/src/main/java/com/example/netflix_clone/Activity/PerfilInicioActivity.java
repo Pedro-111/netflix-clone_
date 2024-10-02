@@ -5,6 +5,7 @@ import static android.content.ContentValues.TAG;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -28,8 +29,11 @@ import retrofit2.Response;
 
 public class PerfilInicioActivity extends AppCompatActivity {
     private static final String TAG = "PerfilInicioActivity";
+    private static final int MAX_RETRIES = 3;
+    private int currentRetry = 0;
+
     private RecyclerView recyclerView;
-    private PerfilSeleccionAdapter perfilAdapter; // Cambiado a PerfilSeleccionAdapter
+    private PerfilSeleccionAdapter perfilAdapter;
     private SharedPreferences sharedPreferences;
 
     @Override
@@ -41,13 +45,11 @@ public class PerfilInicioActivity extends AppCompatActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(layoutManager);
 
-        // Agrega un ItemDecoration para espaciado entre items
         int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.grid_spacing);
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, spacingInPixels, true));
 
         sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
 
-        // Cargar perfiles
         cargarPerfiles();
     }
 
@@ -61,20 +63,39 @@ public class PerfilInicioActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Perfil> perfiles = response.body();
                     setupRecyclerView(perfiles);
+                    currentRetry = 0; // Reiniciar el contador de reintentos si es exitoso
                 } else {
-                    Log.e(TAG, "Error en la respuesta: " + response.code());
-                    Toast.makeText(PerfilInicioActivity.this,
-                            "Error al cargar perfiles", Toast.LENGTH_SHORT).show();
+                    handleError("Error en la respuesta: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<Perfil>> call, Throwable t) {
-                Log.e(TAG, "Error en la llamada: " + t.getMessage());
-                Toast.makeText(PerfilInicioActivity.this,
-                        "Error de conexión", Toast.LENGTH_SHORT).show();
+                handleError("Error de conexión: " + t.getMessage());
             }
         });
+    }
+
+    private void handleError(String errorMessage) {
+        Log.e(TAG, errorMessage);
+        if (currentRetry < MAX_RETRIES) {
+            currentRetry++;
+            Toast.makeText(PerfilInicioActivity.this,
+                    "Reintentando cargar perfiles... Intento " + currentRetry,
+                    Toast.LENGTH_SHORT).show();
+
+            // Esperar un momento antes de reintentar
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    cargarPerfiles();
+                }
+            }, 1000 * currentRetry); // Incrementar el tiempo de espera con cada reintento
+        } else {
+            Toast.makeText(PerfilInicioActivity.this,
+                    "No se pudieron cargar los perfiles después de " + MAX_RETRIES + " intentos",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setupRecyclerView(List<Perfil> perfiles) {

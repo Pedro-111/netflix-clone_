@@ -169,7 +169,6 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         movieDBApi.getMovieDetails(item.getTmdbId(), API_KEY, "es-ES").enqueue(new Callback<MovieDetailsResponse>() {
             @Override
             public void onResponse(Call<MovieDetailsResponse> call, Response<MovieDetailsResponse> response) {
-                Toast.makeText(getContext(),"Codigo desde Home Fragment"+response.code(),Toast.LENGTH_SHORT).show();
                 if (response.isSuccessful() && response.body() != null) {
                     MovieDetailsResponse details = response.body();
                     Content content = new Content();
@@ -180,6 +179,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                     content.setPoster_path(details.getPosterPath());
                     // Set other necessary fields
                     miListaContent.add(content);
+                    
                 }
                 checkAndUpdateAdapter(pendingRequests, miListaContent);
             }
@@ -287,4 +287,10 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         intent.putExtra("content", content);
         startActivity(intent);
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadData(); // Cargar datos aquí
+    }
+
 }

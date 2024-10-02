@@ -55,6 +55,8 @@ public class DetailActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private ImageButton buttonMiLista;
     private Content content;
+    private boolean isInMyList = false;
+    private int idElemento = -1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,10 +71,20 @@ public class DetailActivity extends AppCompatActivity {
         seasonSpinner = findViewById(R.id.season_spinner);
         episodesRecyclerView = findViewById(R.id.episodes_recycler_view);
         buttonMiLista = findViewById(R.id.add_to_list_button);
+        idPerfilActual = obtenerPerfilActual();
         inicarServicios();
 
         content = (Content) getIntent().getSerializableExtra("content");
-
+        if (content != null && idPerfilActual != -1) {
+            checkIfInMyList();
+        }
+        buttonMiLista.setOnClickListener(v -> {
+            if (isInMyList && idElemento != -1) {
+                eliminarDeMiLista(idElemento);
+            } else {
+                agregarAMiLista(content);
+            }
+        });
         if (content != null) {
             Log.d(TAG, "Content received: " + content.getTitle() + ", ID: " + content.getId());
             contentTitle.setText(content.getTitle());
@@ -109,50 +121,62 @@ public class DetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
             // Aquí iría la lógica para reproducir el contenido
         });
-        idPerfilActual = obtenerPerfilActual();
-        buttonMiLista.setOnClickListener(v -> {
-            //Content content = (Content) getIntent().getSerializableExtra("content");
-            if (content != null) {
-                agregarAMiLista(content);
-            }
-        });
 
         // Configurar RecyclerView
         episodeAdapter = new EpisodeAdapter(new ArrayList<>());
         episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         episodesRecyclerView.setAdapter(episodeAdapter);
     }
+    private void checkIfInMyList() {
+        Call<List<MiListaResponse>> call = miListaServiceApi.obtenerMiListaPorUsuario(idPerfilActual);
+        call.enqueue(new Callback<List<MiListaResponse>>() {
+            @Override
+            public void onResponse(Call<List<MiListaResponse>> call, Response<List<MiListaResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (MiListaResponse item : response.body()) {
+                        if (item.getTmdbId() == content.getId()) {
+                            isInMyList = true;
+                            idElemento = item.getIdElemento(); // Guardamos el idElemento
+                            updateMiListaButton();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<MiListaResponse>> call, Throwable t) {
+                Toast.makeText(DetailActivity.this, "Error al verificar Mi Lista", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
     private void agregarAMiLista(Content content){
         if (idPerfilActual == -1) {
             Toast.makeText(this, "Error: Perfil no seleccionado", Toast.LENGTH_SHORT).show();
             return;
         }
-        String tipo = identificarPeliculaSerie(); // Asegúrate de que esto devuelva "Película" o "Serie"
+        String tipo = identificarPeliculaSerie();
         MiListaRequest miListaRequest = new MiListaRequest(content.getId(), tipo);
-        Toast.makeText(DetailActivity.this,
-                "Cuerpo, Tipo:  "+tipo, Toast.LENGTH_SHORT).show();
-        Toast.makeText(DetailActivity.this,
-                "Cuerpo, MBDBID:  "+content.getId(), Toast.LENGTH_SHORT).show();
+
         Log.d(TAG,"ID: "+content.getId());
         Call<MiListaResponse> call = miListaServiceApi.agregarSeriePelicula(idPerfilActual,miListaRequest);
         call.enqueue(new Callback<MiListaResponse>() {
             @Override
             public void onResponse(Call<MiListaResponse> call, Response<MiListaResponse> response) {
+                // Dentro del onResponse exitoso:
                 if (response.isSuccessful()) {
-                    Toast.makeText(DetailActivity.this,
-                            "Añadido a Mi Lista", Toast.LENGTH_SHORT).show();
-
+                    isInMyList = true;
+                    updateMiListaButton();
+                    Toast.makeText(DetailActivity.this, "Añadido a Mi Lista", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(DetailActivity.this,
                             "Error al añadir a Mi Lista", Toast.LENGTH_SHORT).show();
                 }
                 if(response.code()==201){
-                    Toast.makeText(DetailActivity.this,
-                            "Codigo HTTP/ 201", Toast.LENGTH_SHORT).show();
+                   Log.d(TAG,"Elemento de mi Lista cargado correctamente: "+response.body().getIdElemento());
                 }
-                Toast.makeText(DetailActivity.this,
-                        "Codigo HTTP/ "+response.code(), Toast.LENGTH_SHORT).show();
-
             }
 
             @Override
@@ -162,6 +186,40 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
 
+    }
+    private void eliminarDeMiLista(int idElemento) {
+        Call<Void> call = miListaServiceApi.eliminarDeMiLista(idPerfilActual, idElemento);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    isInMyList = false;
+                    // Removemos el reseteo de idElemento
+                    updateMiListaButton();
+                    Toast.makeText(DetailActivity.this, "Eliminado de Mi Lista", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(DetailActivity.this, "Error al eliminar de Mi Lista", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateMiListaButton() {
+        if (isInMyList) {
+            buttonMiLista.setImageResource(R.drawable.ic_check);
+        } else {
+            buttonMiLista.setImageResource(R.drawable.ic_add);
+        }
+    }
+
+    // Si necesitas verificar el estado para otras operaciones, puedes usar un método como este:
+    private boolean canRemoveFromList() {
+        return isInMyList && idElemento != -1;
     }
     private int obtenerPerfilActual(){
         sharedPreferences = getSharedPreferences("MyApp",MODE_PRIVATE);
@@ -265,7 +323,7 @@ public class DetailActivity extends AppCompatActivity {
                     .into(imageView);
         } else {
             Log.e(TAG, "Invalid image path");
-            // Podrías cargar una imagen por defecto aquí
+
         }
     }
 }

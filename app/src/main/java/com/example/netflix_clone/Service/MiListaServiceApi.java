@@ -7,9 +7,11 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface MiListaServiceApi {
    @GET("/api/MiLista/{idPerfil}")
@@ -17,4 +19,10 @@ public interface MiListaServiceApi {
 
    @POST("/api/MiLista/{idPerfil}")
    Call<MiListaResponse> agregarSeriePelicula(@Path("idPerfil") int idPerfil, @Body MiListaRequest miListaRequest);
+
+   @DELETE("/api/MiLista/{idPerfil}/{idElemento}")
+   Call<Void> eliminarDeMiLista(
+           @Path("idPerfil") int idPerfil,
+           @Path("idElemento") int tmdbId
+   );
 }
