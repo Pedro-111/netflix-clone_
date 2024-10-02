@@ -1,12 +1,12 @@
 package com.example.netflix_clone.Model;
 
 public class Perfil {
-    private int id;
+    private int idPerfil;
     private String nombre;
     private String fotoPerfilUrl;
 
-    public int getId() {
-        return id;
+    public int getIdPerfil() {
+        return idPerfil;
     }
 
     public String getNombre() {

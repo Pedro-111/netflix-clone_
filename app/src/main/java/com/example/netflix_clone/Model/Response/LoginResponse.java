@@ -28,22 +28,4 @@ public class LoginResponse {
     public List<Perfil> getPerfiles() {
         return perfiles;
     }
-    public static class Perfil {
-        private int id;
-        private String nombre;
-        private String fotoPerfilUrl;
-
-        public int getId() {
-            return id;
-        }
-
-        public String getNombre() {
-            return nombre;
-        }
-
-        public String getFotoPerfilUrl() {
-            return fotoPerfilUrl;
-        }
-    }
-
 }

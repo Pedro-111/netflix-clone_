@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.PerfilAdapter;
+import com.example.netflix_clone.Model.Perfil;
 import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.LoginRequest;
 import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
@@ -179,7 +180,12 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    private void mostrarPerfiles(List<LoginResponse.Perfil> perfiles) {
+    private void mostrarPerfiles(List<Perfil> perfiles) {
+        if (perfiles == null || perfiles.isEmpty()) {
+            Toast.makeText(this, "No hay perfiles disponibles", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_seleccionar_perfil, null);
         builder.setView(view);
@@ -187,24 +193,57 @@ public class LoginActivity extends AppCompatActivity {
         RecyclerView recyclerView = view.findViewById(R.id.perfilesRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        AlertDialog dialog = builder.create(); // Moved this line above the lambda function
+        AlertDialog dialog = builder.create();
 
-        PerfilAdapter adapter = new PerfilAdapter(perfiles, perfil -> {
-            guardarPerfilSeleccionado(perfil.getId());
-            navigateToMain();
-            dialog.dismiss(); // Now, 'dialog' is available here
+        // Debug log
+        for (Perfil perfil : perfiles) {
+            Log.d(TAG, "Perfil disponible - ID: " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
+        }
+
+        PerfilAdapter adapter = new PerfilAdapter(perfiles, new PerfilAdapter.OnPerfilSelectedListener() {
+            @Override
+            public void onPerfilSelected(Perfil perfil) {
+                try {
+                    int idPerfilServidor = perfil.getIdPerfil();
+                    Log.d(TAG, "Perfil seleccionado - ID: " + idPerfilServidor + ", Nombre: " + perfil.getNombre());
+
+                    guardarPerfilSeleccionado(idPerfilServidor);
+
+                    // Verificar que se guardó correctamente
+                    int idGuardado = sharedPreferences.getInt("idPerfil", -1);
+                    if (idGuardado == idPerfilServidor) {
+                        Toast.makeText(LoginActivity.this,
+                                "Perfil seleccionado: " + perfil.getNombre(), Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        navigateToMain();
+                    } else {
+                        Log.e(TAG, "Error al guardar el ID del perfil. ID esperado: " +
+                                idPerfilServidor + ", ID guardado: " + idGuardado);
+                        Toast.makeText(LoginActivity.this,
+                                "Error al guardar el perfil seleccionado", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error al procesar la selección de perfil: " + e.getMessage());
+                    Toast.makeText(LoginActivity.this,
+                            "Error al procesar la selección de perfil", Toast.LENGTH_SHORT).show();
+                }
+            }
         });
 
         recyclerView.setAdapter(adapter);
-
         dialog.show();
     }
 
     private void guardarPerfilSeleccionado(int idPerfil) {
-        SharedPreferences prefs = getSharedPreferences("MiApp", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putInt("idPerfilSeleccionado", idPerfil);
-        editor.apply();
+        try {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("idPerfil", idPerfil);
+            editor.apply();
+
+            Log.d(TAG, "ID de perfil guardado: " + idPerfil);
+        } catch (Exception e) {
+            Log.e(TAG, "Error al guardar el ID del perfil: " + e.getMessage());
+        }
     }
 
 

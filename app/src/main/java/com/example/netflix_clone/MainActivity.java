@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.netflix_clone.Fragmentos.GamesFragment;
 import com.example.netflix_clone.Fragmentos.HomeFragment;
+import com.example.netflix_clone.Fragmentos.PerfilFragment;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -66,9 +67,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 // else if (itemId == R.id.nav_new) {
                 //     selectedFragment = new NewFragment();
-                // } else if (itemId == R.id.nav_profile) {
-                //     selectedFragment = new ProfileFragment();
-                // }
+                 //}
+                 else if (itemId == R.id.nav_profile) {
+                     selectedFragment = new PerfilFragment();
+                 }
 
                 if (selectedFragment != null) {
                     getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,

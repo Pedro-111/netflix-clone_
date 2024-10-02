@@ -1,5 +1,6 @@
 package com.example.netflix_clone.Adapter;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,29 +11,21 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.netflix_clone.Model.Perfil;
 import com.example.netflix_clone.R;
-
-import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
-import com.example.netflix_clone.Model.Request.LoginRequest;
-import com.example.netflix_clone.Model.Request.RegisterRequest;
-import com.example.netflix_clone.Model.Request.TokenRequest;
-import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
-import com.example.netflix_clone.Model.Response.LoginResponse;
-import com.example.netflix_clone.Model.Response.RegisterResponse;
-import com.example.netflix_clone.Model.Response.TokenResponse;
-import com.example.netflix_clone.Model.Response.TokenValidationResponse;
 
 import java.util.List;
 
 public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilViewHolder> {
-    private List<LoginResponse.Perfil> perfiles;
+    private static final String TAG = "PerfilAdapter";
+    private List<Perfil> perfiles;
     private OnPerfilSelectedListener listener;
 
     public interface OnPerfilSelectedListener {
-        void onPerfilSelected(LoginResponse.Perfil perfil);
+        void onPerfilSelected(Perfil perfil);
     }
 
-    public PerfilAdapter(List<LoginResponse.Perfil> perfiles, OnPerfilSelectedListener listener) {
+    public PerfilAdapter(List<Perfil> perfiles, OnPerfilSelectedListener listener) {
         this.perfiles = perfiles;
         this.listener = listener;
     }
@@ -46,13 +39,17 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
 
     @Override
     public void onBindViewHolder(@NonNull PerfilViewHolder holder, int position) {
-        LoginResponse.Perfil perfil = perfiles.get(position);
-        holder.bind(perfil);
+        try {
+            Perfil perfil = perfiles.get(position);
+            holder.bind(perfil);
+        } catch (Exception e) {
+            Log.e(TAG, "Error en onBindViewHolder: " + e.getMessage());
+        }
     }
 
     @Override
     public int getItemCount() {
-        return perfiles.size();
+        return perfiles != null ? perfiles.size() : 0;
     }
 
     class PerfilViewHolder extends RecyclerView.ViewHolder {
@@ -61,24 +58,42 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
 
         PerfilViewHolder(@NonNull View itemView) {
             super(itemView);
-            perfilImageView = itemView.findViewById(R.id.perfilImageView);
-            nombrePerfilTextView = itemView.findViewById(R.id.nombrePerfilTextView);
+            try {
+                perfilImageView = itemView.findViewById(R.id.perfilImageView);
+                nombrePerfilTextView = itemView.findViewById(R.id.nombrePerfilTextView);
 
-            itemView.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
-                    listener.onPerfilSelected(perfiles.get(position));
-                }
-            });
+                itemView.setOnClickListener(v -> {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION && listener != null) {
+                        Perfil perfilSeleccionado = perfiles.get(position);
+                        Log.d(TAG, "Perfil seleccionado: ID=" + perfilSeleccionado.getIdPerfil());
+                        listener.onPerfilSelected(perfilSeleccionado);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Error en constructor de PerfilViewHolder: " + e.getMessage());
+            }
         }
 
-        void bind(LoginResponse.Perfil perfil) {
-            nombrePerfilTextView.setText(perfil.getNombre());
-            // Cargar la imagen del perfil usando Glide o Picasso
-            Glide.with(itemView.getContext())
-                    .load(perfil.getFotoPerfilUrl())
-                    .circleCrop()
-                    .into(perfilImageView);
+        void bind(Perfil perfil) {
+            try {
+                if (perfil != null) {
+                    nombrePerfilTextView.setText(perfil.getNombre());
+
+                    String fotoUrl = perfil.getFotoPerfilUrl();
+                    if (fotoUrl != null && !fotoUrl.isEmpty()) {
+                        Glide.with(itemView.getContext())
+                                .load(fotoUrl)
+                                .circleCrop()
+                                .error(R.drawable.ic_launcher_background)
+                                .into(perfilImageView);
+                    } else {
+                        perfilImageView.setImageResource(R.drawable.ic_launcher_background);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error al vincular perfil: " + e.getMessage());
+            }
         }
     }
 }
