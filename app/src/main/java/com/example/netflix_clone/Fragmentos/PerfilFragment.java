@@ -70,7 +70,7 @@ public class PerfilFragment extends Fragment {
 
             @Override
             public void onFailure(Call<Perfil> call, Throwable t) {
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

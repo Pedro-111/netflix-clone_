@@ -1,6 +1,7 @@
 package com.example.netflix_clone.Activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,7 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
+import com.example.netflix_clone.Model.Request.MiListaRequest;
+import com.example.netflix_clone.Model.Response.MiListaResponse;
+import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.R;
+import com.example.netflix_clone.Service.MiListaServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.Episode;
@@ -44,9 +49,12 @@ public class DetailActivity extends AppCompatActivity {
     private EpisodeAdapter episodeAdapter;
     private List<Season> seasons;
     private TheMovieDBApi api;
-    private int seriesId;
+    private MiListaServiceApi miListaServiceApi;
+    private int seriesId,idPerfilActual;
     private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";
-
+    private SharedPreferences sharedPreferences;
+    private ImageButton buttonMiLista;
+    private Content content;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,15 +68,10 @@ public class DetailActivity extends AppCompatActivity {
         ImageView arrowBack = findViewById(R.id.arrow_back);
         seasonSpinner = findViewById(R.id.season_spinner);
         episodesRecyclerView = findViewById(R.id.episodes_recycler_view);
+        buttonMiLista = findViewById(R.id.add_to_list_button);
+        inicarServicios();
 
-        // Inicializar Retrofit y API
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.themoviedb.org/3/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        api = retrofit.create(TheMovieDBApi.class);
-
-        Content content = (Content) getIntent().getSerializableExtra("content");
+        content = (Content) getIntent().getSerializableExtra("content");
 
         if (content != null) {
             Log.d(TAG, "Content received: " + content.getTitle() + ", ID: " + content.getId());
@@ -106,12 +109,82 @@ public class DetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
             // Aquí iría la lógica para reproducir el contenido
         });
+        idPerfilActual = obtenerPerfilActual();
+        buttonMiLista.setOnClickListener(v -> {
+            //Content content = (Content) getIntent().getSerializableExtra("content");
+            if (content != null) {
+                agregarAMiLista(content);
+            }
+        });
 
         // Configurar RecyclerView
         episodeAdapter = new EpisodeAdapter(new ArrayList<>());
         episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         episodesRecyclerView.setAdapter(episodeAdapter);
     }
+    private void agregarAMiLista(Content content){
+        if (idPerfilActual == -1) {
+            Toast.makeText(this, "Error: Perfil no seleccionado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String tipo = identificarPeliculaSerie(); // Asegúrate de que esto devuelva "Película" o "Serie"
+        MiListaRequest miListaRequest = new MiListaRequest(content.getId(), tipo);
+        Toast.makeText(DetailActivity.this,
+                "Cuerpo, Tipo:  "+tipo, Toast.LENGTH_SHORT).show();
+        Toast.makeText(DetailActivity.this,
+                "Cuerpo, MBDBID:  "+content.getId(), Toast.LENGTH_SHORT).show();
+        Call<MiListaResponse> call = miListaServiceApi.agregarSeriePelicula(idPerfilActual,miListaRequest);
+        call.enqueue(new Callback<MiListaResponse>() {
+            @Override
+            public void onResponse(Call<MiListaResponse> call, Response<MiListaResponse> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(DetailActivity.this,
+                            "Añadido a Mi Lista", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    Toast.makeText(DetailActivity.this,
+                            "Error al añadir a Mi Lista", Toast.LENGTH_SHORT).show();
+                }
+                if(response.code()==201){
+                    Toast.makeText(DetailActivity.this,
+                            "Codigo HTTP/ 201", Toast.LENGTH_SHORT).show();
+                }
+                Toast.makeText(DetailActivity.this,
+                        "Codigo HTTP/ "+response.code(), Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onFailure(Call<MiListaResponse> call, Throwable throwable) {
+                Toast.makeText(DetailActivity.this,
+                        "Error de conexión", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+    private int obtenerPerfilActual(){
+        sharedPreferences = getSharedPreferences("MyApp",MODE_PRIVATE);
+        int idPerfil = sharedPreferences.getInt("idPerfil",-1);
+        return idPerfil;
+    }
+    private void inicarServicios(){
+        // Inicializar Retrofit y API
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.themoviedb.org/3/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        api = retrofit.create(TheMovieDBApi.class);
+        miListaServiceApi = RetrofitClient.getMiListaServiceApi(this);
+
+    }
+    private String identificarPeliculaSerie() {
+        if (seasons == null || seasons.isEmpty()) {
+            return "Película";
+        } else {
+            return "Serie";
+        }
+    }
+
 
     private void fetchSeasons(int seriesId) {
         api.getTVShowDetails(seriesId, API_KEY, "es-ES").enqueue(new Callback<TVShowDetails>() {

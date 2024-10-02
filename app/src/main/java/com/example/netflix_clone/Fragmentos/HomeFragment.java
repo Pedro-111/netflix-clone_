@@ -38,6 +38,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     private ContentAdapter acclaimedSeriesAdapter;
     private ContentAdapter dramaticSeriesAdapter;
     private ContentAdapter yourNextStoryAdapter;
+    private ContentAdapter milistaAdapter;
     private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";  // Agrega tu API Key aquí
 
     @Nullable

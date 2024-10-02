@@ -184,6 +184,23 @@
                 </HorizontalScrollView>
             </LinearLayout>
 
+            <!-- Secciones de Mi Lista -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mi Lista"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:padding="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/milista_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
             <!-- Secciones de Series -->
             <TextView
                 android:layout_width="match_parent"
