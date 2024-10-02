@@ -1,4 +1,4 @@
-package com.example.netflix_clone;
+package com.example.netflix_clone.Activity;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -18,11 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.netflix_clone.Adapter.ImagePagerAdapter;
+import com.example.netflix_clone.MainActivity;
 import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.RegisterRequest;
 import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
 import com.example.netflix_clone.Model.Response.RegisterResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
+import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.AuthServiceApi;
 import me.relex.circleindicator.CircleIndicator;
 import retrofit2.Call;
@@ -121,18 +123,23 @@ public class WelcomeActivity extends AppCompatActivity {
         if (token != null) {
             // Hay un token, asumimos que la sesión es válida
             // El interceptor se encargará de renovar el token si es necesario
-            iniciarMainActivity();
+            iniciarPerfilInicioActivity();
         } else {
             // No hay token, permanecemos en WelcomeActivity
             Log.d(TAG, "verificarSesion: No hay token, permaneciendo en WelcomeActivity");
         }
     }
-
-    private void iniciarMainActivity() {
-        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+    private void iniciarPerfilInicioActivity(){
+        Intent intent = new Intent(WelcomeActivity.this,PerfilInicioActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
+
+//    private void iniciarMainActivity() {
+//        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        startActivity(intent);
+//    }
 
     private void updateTextsForPage(int position) {
         switch (position) {

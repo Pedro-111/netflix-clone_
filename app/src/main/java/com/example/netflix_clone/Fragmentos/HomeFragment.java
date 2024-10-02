@@ -15,13 +15,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.ContentAdapter;
-import com.example.netflix_clone.DetailActivity;
+import com.example.netflix_clone.Activity.DetailActivity;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Response.ApiResponse;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.R;
-import com.example.netflix_clone.SearchActivity;
+import com.example.netflix_clone.Activity.SearchActivity;
 
 import java.util.ArrayList;
 import java.util.List;

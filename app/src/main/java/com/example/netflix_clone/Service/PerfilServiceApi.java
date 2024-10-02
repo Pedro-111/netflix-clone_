@@ -12,4 +12,7 @@ import retrofit2.http.Path;
 public interface PerfilServiceApi {
     @GET("/api/Perfil/{id}")
     Call<Perfil> obtenerPerfil(@Path("id") int idPerfil);
+
+    @GET("/api/Perfil")
+    Call<List<Perfil>> obtenerPerfiles();
 }

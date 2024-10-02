@@ -1,4 +1,4 @@
-package com.example.netflix_clone;
+package com.example.netflix_clone.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
+import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.Episode;

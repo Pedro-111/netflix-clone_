@@ -1,4 +1,4 @@
-package com.example.netflix_clone;
+package com.example.netflix_clone.Activity;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.SearchAdapter;
+import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Response.ApiResponse;
 import com.example.netflix_clone.Model.Content;

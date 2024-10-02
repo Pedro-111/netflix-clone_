@@ -29,6 +29,9 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
         this.perfiles = perfiles;
         this.listener = listener;
     }
+    public PerfilAdapter(List<Perfil> perfiles) {
+        this.perfiles = perfiles;
+    }
 
     @NonNull
     @Override

@@ -1,6 +1,4 @@
-package com.example.netflix_clone;
-
-import static android.content.ContentValues.TAG;
+package com.example.netflix_clone.Activity;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -23,13 +21,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.PerfilAdapter;
+import com.example.netflix_clone.MainActivity;
 import com.example.netflix_clone.Model.Perfil;
 import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.LoginRequest;
 import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
 import com.example.netflix_clone.Model.Response.LoginResponse;
-import com.example.netflix_clone.Model.Response.TokenResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
+import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.AuthServiceApi;
 
 import java.util.List;
@@ -165,7 +164,6 @@ public class LoginActivity extends AppCompatActivity {
                     if (loginResponse.isSuccess()) {
                         saveTokens(loginResponse.getToken(), loginResponse.getRefreshToken());
                         mostrarPerfiles(loginResponse.getPerfiles());
-
                     } else {
                         Toast.makeText(LoginActivity.this, "Correo o Contraseña Incorrectos", Toast.LENGTH_SHORT).show();
                     }
