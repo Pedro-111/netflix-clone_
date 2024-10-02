@@ -17,6 +17,8 @@ public class TVShowDetails {
     @SerializedName("seasons")
     private List<Season> seasons;
 
+    private String poster_path;
+
     public TVShowDetails() {
     }
 
@@ -25,6 +27,14 @@ public class TVShowDetails {
         this.name = name;
         this.overview = overview;
         this.seasons = seasons;
+    }
+
+    public void setPoster_path(String poster_path) {
+        this.poster_path = poster_path;
+    }
+
+    public String getPoster_path() {
+        return poster_path;
     }
 
     public int getId() {

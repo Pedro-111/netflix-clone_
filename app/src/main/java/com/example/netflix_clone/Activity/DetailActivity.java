@@ -133,6 +133,7 @@ public class DetailActivity extends AppCompatActivity {
                 "Cuerpo, Tipo:  "+tipo, Toast.LENGTH_SHORT).show();
         Toast.makeText(DetailActivity.this,
                 "Cuerpo, MBDBID:  "+content.getId(), Toast.LENGTH_SHORT).show();
+        Log.d(TAG,"ID: "+content.getId());
         Call<MiListaResponse> call = miListaServiceApi.agregarSeriePelicula(idPerfilActual,miListaRequest);
         call.enqueue(new Callback<MiListaResponse>() {
             @Override
@@ -184,7 +185,6 @@ public class DetailActivity extends AppCompatActivity {
             return "Serie";
         }
     }
-
 
     private void fetchSeasons(int seriesId) {
         api.getTVShowDetails(seriesId, API_KEY, "es-ES").enqueue(new Callback<TVShowDetails>() {

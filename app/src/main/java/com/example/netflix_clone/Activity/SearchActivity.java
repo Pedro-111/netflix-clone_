@@ -61,7 +61,7 @@ public class SearchActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false; // We don't need this anymore as we're searching in real-time
+                return false;
             }
 
             @Override
@@ -72,7 +72,6 @@ public class SearchActivity extends AppCompatActivity {
                     recommendedRecyclerView.setVisibility(View.VISIBLE);
                 } else {
                     recommendedRecyclerView.setVisibility(View.GONE);
-                    // Delay the search to avoid making an API call for every single character
                     searchHandler.postDelayed(() -> performSearch(newText), SEARCH_DELAY_MS);
                 }
                 return true;

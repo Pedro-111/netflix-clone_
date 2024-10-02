@@ -35,7 +35,7 @@ public class TokenInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request originalRequest = chain.request();
         String token = sharedPreferences.getString("token", null);
-        Log.d(TAG,"Token desde interceptor"+token);
+        Log.d(TAG,"Token desde interceptor: "+token);
         if (token == null) {
             return chain.proceed(originalRequest);
         }

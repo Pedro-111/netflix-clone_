@@ -1,6 +1,7 @@
 package com.example.netflix_clone.Service;
 
 import com.example.netflix_clone.Model.Response.ApiResponse;
+import com.example.netflix_clone.Model.Response.MovieDetailsResponse;
 import com.example.netflix_clone.Model.SeasonDetails;
 import com.example.netflix_clone.Model.TVShowDetails;
 
@@ -39,6 +40,13 @@ public interface TheMovieDBApi {
             @Query("language") String language
     );
 
+    @GET("movie/{movie_id}")
+    Call<MovieDetailsResponse> getMovieDetails(
+            @Path("movie_id") int movieId,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
     @GET("tv/{tv_id}/season/{season_number}")
     Call<SeasonDetails> getSeasonDetails(
             @Path("tv_id") int tvId,
@@ -46,4 +54,5 @@ public interface TheMovieDBApi {
             @Query("api_key") String apiKey,
             @Query("language") String language
     );
+
 }
