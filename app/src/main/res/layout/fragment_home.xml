@@ -6,6 +6,60 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
+    <!-- AppBarLayout para contener el Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
+
+            <!-- Icono de Netflix -->
+            <ImageView
+                android:id="@+id/arrow_back"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_netflix_logo"
+                android:contentDescription="@string/netflix_logo"
+                android:layout_gravity="start" />
+
+            <!-- Contenedor para los botones -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp">
+
+                <!-- Botones sin cambios -->
+                <ImageButton
+                    android:id="@+id/download_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_download"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/download"
+                    android:layout_marginStart="8dp" />
+
+                <ImageButton
+                    android:id="@+id/search_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_search"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search" />
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
     <!-- NestedScrollView para el contenido desplazable -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -17,15 +71,51 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Contenedor de botones fijos ahora dentro del NestedScrollView -->
+            <LinearLayout
+                android:id="@+id/button_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_series"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Series"
+                    android:textSize="18dp"
+                    android:textColor="@color/white"/>
+
+                <Button
+                    android:id="@+id/button_peliculas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Películas"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:textSize="18dp"
+                    android:textColor="@color/white"/>
+
+                <Button
+                    android:id="@+id/button_categorias"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Categorias"
+                    android:textSize="18dp"
+                    android:textColor="@color/white"/>
+
+            </LinearLayout>
             <!-- Contenido de la página -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="440dp"
-                    app:cardCornerRadius="0dp"
+                    app:cardCornerRadius="15dp"
                     app:cardElevation="0dp">
 
                     <ImageView
@@ -90,40 +180,6 @@
                     </LinearLayout>
                 </LinearLayout>
             </FrameLayout>
-
-            <!-- Navigation Bar -->
-            <LinearLayout
-                android:id="@+id/navigation_bar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center">
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/series"
-                    android:textColor="@android:color/white"
-                    android:layout_marginHorizontal="8dp"
-                    style="?android:attr/buttonBarButtonStyle" />
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/pel_culas"
-                    android:textColor="@android:color/white"
-                    android:layout_marginHorizontal="8dp"
-                    style="?android:attr/buttonBarButtonStyle" />
-
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/categor_as"
-                    android:textColor="@android:color/white"
-                    android:layout_marginHorizontal="8dp"
-                    style="?android:attr/buttonBarButtonStyle" />
-            </LinearLayout>
 
             <!-- Popular Games Section -->
             <LinearLayout
@@ -249,68 +305,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+
+            <!-- Aquí puedes agregar más contenido como sea necesario -->
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Gradiente oscuro detrás del Toolbar -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/toolbar_gradient"
-        android:fitsSystemWindows="true"/>
-
-    <!-- AppBarLayout para contener el Toolbar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:fitsSystemWindows="true"
-        app:elevation="0dp">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            app:layout_collapseMode="pin"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
-
-            <!-- Icono de Netflix -->
-            <ImageView
-                android:id="@+id/arrow_back"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_netflix_logo"
-                android:contentDescription="@string/netflix_logo"
-                android:layout_gravity="start" />
-
-            <!-- Contenedor para los botones -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_gravity="end"
-                android:layout_marginEnd="16dp">
-
-                <!-- Botón de Descarga -->
-                <ImageButton
-                    android:id="@+id/download_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_download"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/download"
-                    android:layout_marginStart="8dp" />
-
-                <!-- Botón de Búsqueda -->
-                <ImageButton
-                    android:id="@+id/search_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_search"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/search" />
-            </LinearLayout>
-        </androidx.appcompat.widget.Toolbar>
-    </com.google.android.material.appbar.AppBarLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
