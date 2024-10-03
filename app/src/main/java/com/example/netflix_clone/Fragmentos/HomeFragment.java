@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.netflix_clone.Activity.MiListaActivity;
 import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.Activity.DetailActivity;
 import com.example.netflix_clone.Model.Response.MiListaResponse;
@@ -52,6 +56,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     private int idPerfil;
     private MiListaServiceApi miListaServiceApi;
     private TheMovieDBApi movieDBApi;
+    private ImageView verTodos;
+    private TextView textViewListaVerTodos;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -61,7 +67,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         dramaticSeriesRecyclerView = view.findViewById(R.id.dramatic_series_recycler_view);
         yourNextStoryRecyclerView = view.findViewById(R.id.your_next_story_recycler_view);
         milistaRecyclerView = view.findViewById(R.id.milista_recycler_view);
-
+        verTodos = view.findViewById(R.id.imageViewVerTodos);
+        textViewListaVerTodos = view.findViewById(R.id.textViewListaVerTodos);
         ImageButton searchButton = view.findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +76,14 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                 Intent intent = new Intent(getActivity(), SearchActivity.class);
                 startActivity(intent);
             }
+        });
+//        verTodos.setOnClickListener(v -> {
+//            Intent intent = new Intent(getContext(), MiListaActivity.class);
+//            startActivity(intent);
+//        });
+        textViewListaVerTodos.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), MiListaActivity.class);
+            startActivity(intent);
         });
         iniciarServices();
         setupRecyclerViews();

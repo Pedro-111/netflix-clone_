@@ -30,6 +30,7 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".Activity.PerfilInicioActivity"/>
         <activity android:name=".Activity.WelcomeActivity"/>
+        <activity android:name=".Activity.MiListaActivity"/>
         <activity android:name=".Activity.LoginActivity"/>
         <activity android:name=".Activity.DetailActivity" />
         <activity android:name=".Activity.SearchActivity" />
