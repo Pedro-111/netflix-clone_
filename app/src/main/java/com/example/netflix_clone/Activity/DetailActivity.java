@@ -89,7 +89,7 @@ public class DetailActivity extends AppCompatActivity {
             Log.d(TAG, "Content received: " + content.getTitle() + ", ID: " + content.getId());
             contentTitle.setText(content.getTitle());
             contentDescription.setText(content.getOverview());
-            loadImage("https://image.tmdb.org/t/p/w500" + content.getPoster_path(), contentImage);
+            loadImage(content.getPoster_path(), contentImage);
 
             // Asignar el ID de la serie
             this.seriesId = content.getId();
@@ -217,7 +217,6 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
 
-    // Si necesitas verificar el estado para otras operaciones, puedes usar un método como este:
     private boolean canRemoveFromList() {
         return isInMyList && idElemento != -1;
     }

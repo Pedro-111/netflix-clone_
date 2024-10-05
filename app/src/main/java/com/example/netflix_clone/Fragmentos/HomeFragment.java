@@ -77,10 +77,10 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                 startActivity(intent);
             }
         });
-//        verTodos.setOnClickListener(v -> {
-//            Intent intent = new Intent(getContext(), MiListaActivity.class);
-//            startActivity(intent);
-//        });
+        verTodos.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), MiListaActivity.class);
+            startActivity(intent);
+        });
         textViewListaVerTodos.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), MiListaActivity.class);
             startActivity(intent);
