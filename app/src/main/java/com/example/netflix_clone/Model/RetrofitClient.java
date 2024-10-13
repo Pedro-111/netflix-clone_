@@ -6,6 +6,8 @@ import com.example.netflix_clone.Service.AuthServiceApi;
 import com.example.netflix_clone.Service.MiListaServiceApi;
 import com.example.netflix_clone.Service.PerfilServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
+import com.example.netflix_clone.Service.TrailerServiceApi;
+
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -17,6 +19,7 @@ public class RetrofitClient {
     private static Retrofit retrofitPerfil = null;
     private static Retrofit retrofitMiLista = null;
     private static Retrofit retrofitMovie = null;
+    private static Retrofit retrofitTrailer=null;
 
     // Cliente Retrofit con interceptor para AuthServiceApi
     public static Retrofit getAuthClient(String baseUrl, Context context) {
@@ -88,6 +91,21 @@ public class RetrofitClient {
         return retrofitMovie;
     }
 
+    // Cliente Retrofit sin interceptor para TheMovieServiceApi
+    public static Retrofit getTrailerClient(String baseUrl) {
+        if (retrofitTrailer == null) {
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .build();
+
+            retrofitTrailer = new Retrofit.Builder()
+                    .baseUrl(baseUrl)
+                    .client(okHttpClient)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofitTrailer;
+    }
+
     // Servicio temporal de API de autenticación (sin interceptor)
     private static AuthServiceApi createTempAuthApiService(String baseUrl) {
         Retrofit tempRetrofit = new Retrofit.Builder()
@@ -115,5 +133,10 @@ public class RetrofitClient {
     // Método para obtener el servicio TheMovieServiceApi (sin interceptor)
     public static TheMovieDBApi getMovieServiceApi() {
         return getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
+    }
+
+    // Método para obtener el servicio TheTrailerServiceApi (sin interceptor)
+    public static TrailerServiceApi getTrailerServiceApi() {
+        return getTrailerClient("https://apilogin.somee.com").create(TrailerServiceApi.class);
     }
 }

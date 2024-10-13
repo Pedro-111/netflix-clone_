@@ -1,9 +1,12 @@
 package com.example.netflix_clone.Fragmentos;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -208,15 +211,21 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
     private void checkAndUpdateAdapter(AtomicInteger pendingRequests, List<Content> miListaContent) {
         if (pendingRequests.decrementAndGet() == 0) {
-            requireActivity().runOnUiThread(() -> {
-                milistaAdapter.updateData(miListaContent);
-                if (miListaContent.isEmpty()) {
-                    // Opcional: Mostrar un mensaje si la lista está vacía
-                    showEmptyListMessage();
-                }
-            });
+            // Verifica si el fragmento está agregado antes de intentar acceder a la actividad
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    milistaAdapter.updateData(miListaContent);
+                    if (miListaContent.isEmpty()) {
+                        // Opcional: Mostrar un mensaje si la lista está vacía
+                        showEmptyListMessage();
+                    }
+                });
+            } else {
+                Log.e(TAG, "El fragmento no está agregado a la actividad.");
+            }
         }
     }
+
 
     private void showEmptyListMessage() {
         // Implementa aquí la lógica para mostrar un mensaje cuando la lista está vacía
