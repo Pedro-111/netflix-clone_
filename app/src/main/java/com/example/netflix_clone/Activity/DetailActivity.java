@@ -3,7 +3,7 @@ package com.example.netflix_clone.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -15,15 +15,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
 import com.example.netflix_clone.Model.Request.MiListaRequest;
@@ -31,6 +29,9 @@ import com.example.netflix_clone.Model.Response.MiListaResponse;
 import com.example.netflix_clone.Model.Response.TrailerResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Model.VideoData;
+import com.example.netflix_clone.Model.VideoDownloader;
+import com.example.netflix_clone.Model.VideoItem;
+import com.example.netflix_clone.Model.VideoStorageManager;
 import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.MiListaServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
@@ -41,16 +42,15 @@ import com.example.netflix_clone.Model.SeasonDetails;
 import com.example.netflix_clone.Model.TVShowDetails;
 import com.example.netflix_clone.Service.TrailerServiceApi;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -72,6 +72,14 @@ public class DetailActivity extends AppCompatActivity {
     // Variables para reproducir los videos
     private WebView videoView;
     private TrailerServiceApi trailerServiceApi;
+
+    // Variables para descargar videos
+    private ImageButton download_video;
+    private ProgressBar progressBar;
+    private TextView progressText, fileNameText;
+    private VideoDownloader videoDownloader;
+    private String videoUrl;
+    private VideoStorageManager videoStorageManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,7 +93,12 @@ public class DetailActivity extends AppCompatActivity {
         seasonSpinner = findViewById(R.id.season_spinner);
         episodesRecyclerView = findViewById(R.id.episodes_recycler_view);
         buttonMiLista = findViewById(R.id.add_to_list_button);
+        progressBar = findViewById(R.id.progress_bar);
+        progressText = findViewById(R.id.progress_text);
+        fileNameText = findViewById(R.id.file_name_text);
+        download_video = findViewById(R.id.download_video_button);
         idPerfilActual = obtenerPerfilActual();
+        videoStorageManager = new VideoStorageManager(this);
         // Obtenemos la vista
         videoView = findViewById(R.id.webView);
 
@@ -138,11 +151,71 @@ public class DetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
             // Aquí iría la lógica para reproducir el contenido
         });
-
+        // Descargar Video
+        videoDownloader = new VideoDownloader(this);
+        download_video.setOnClickListener(v->{
+            downloadVideo();
+        });
         // Configurar RecyclerView
         episodeAdapter = new EpisodeAdapter(new ArrayList<>());
         episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         episodesRecyclerView.setAdapter(episodeAdapter);
+    }
+    private void downloadVideo() {
+        String urlYoutube = videoUrl;
+
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setProgress(0);
+        progressText.setVisibility(View.VISIBLE);
+        progressText.setText("Preparando descarga...");
+        fileNameText.setVisibility(View.VISIBLE);
+        fileNameText.setText("Obteniendo información del archivo...");
+        download_video.setEnabled(false);
+
+        videoDownloader.downloadVideo(urlYoutube, new VideoDownloader.DownloadCallback() {
+            @Override
+            public void onDownloadStarted(String fileName) {
+                fileNameText.setText("Nombre: " + fileName);
+            }
+
+            @Override
+            public void onProgressUpdate(int progress, String downloadedSize, String totalSize) {
+                progressBar.setProgress(progress);
+                progressText.setText(downloadedSize + " MB / " + totalSize + " MB");
+            }
+
+            @Override
+            public void onDownloadComplete(boolean success, String fileName) {
+                if (success) {
+                    File videoFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
+                    VideoItem videoItem = new VideoItem(content.getTitle(), videoFile.getAbsolutePath());
+                    videoStorageManager.saveVideo(videoItem);
+                    Toast.makeText(DetailActivity.this, "Descarga completada con éxito: " + fileName, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(DetailActivity.this, "Error al guardar el archivo descargado", Toast.LENGTH_SHORT).show();
+                }
+                finalizarDescarga();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(DetailActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                finalizarDescarga();
+            }
+        });
+    }
+
+    private void finalizarDescarga() {
+        progressBar.setVisibility(View.GONE);
+        progressText.setVisibility(View.GONE);
+        fileNameText.setVisibility(View.GONE);
+        download_video.setEnabled(true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        videoDownloader.shutdown();
     }
     private void setupWebView() {
         WebSettings webSettings = videoView.getSettings();
@@ -158,8 +231,10 @@ public class DetailActivity extends AppCompatActivity {
         String videoId = extractYouTubeVideoId(youtubeUrl);
 
         // Define el tamaño que deseas para el reproductor
-        String height = "200"; // Puedes ajustar este valor
-        String width = "380";  // Puedes ajustar este valor
+
+        String height = "100%";
+        String width = "100%";
+        videoView.getSettings().setJavaScriptEnabled(true);
 
         String htmlContent = "<!DOCTYPE html>" +
                 "<html>" +
@@ -218,7 +293,7 @@ public class DetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<VideoData> videos = response.body().getVideos();
                     if (!videos.isEmpty()) {
-                        String videoUrl = videos.get(0).getUrl();
+                        videoUrl = videos.get(0).getUrl();
                         setupWebView();  // Configura el WebView
                         playYouTubeVideo(videoUrl);  // Reproduce el video
                     } else {
@@ -285,7 +360,7 @@ public class DetailActivity extends AppCompatActivity {
                             "Error al añadir a Mi Lista", Toast.LENGTH_SHORT).show();
                 }
                 if(response.code()==201){
-                   Log.d(TAG,"Elemento de mi Lista cargado correctamente: "+response.body().getIdElemento());
+                    Log.d(TAG,"Elemento de mi Lista cargado correctamente: "+response.body().getIdElemento());
                 }
             }
 

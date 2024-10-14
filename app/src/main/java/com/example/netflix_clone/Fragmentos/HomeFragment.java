@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.netflix_clone.Activity.DownloadedVideosActivity;
 import com.example.netflix_clone.Activity.MiListaActivity;
 import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.Activity.DetailActivity;
@@ -60,6 +61,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     private MiListaServiceApi miListaServiceApi;
     private TheMovieDBApi movieDBApi;
     private ImageView verTodos;
+    private ImageButton downloadButtonHome;
     private TextView textViewListaVerTodos;
     @Nullable
     @Override
@@ -71,6 +73,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         yourNextStoryRecyclerView = view.findViewById(R.id.your_next_story_recycler_view);
         milistaRecyclerView = view.findViewById(R.id.milista_recycler_view);
         verTodos = view.findViewById(R.id.imageViewVerTodos);
+        downloadButtonHome = view.findViewById(R.id.download_button_home);
         textViewListaVerTodos = view.findViewById(R.id.textViewListaVerTodos);
         ImageButton searchButton = view.findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -79,6 +82,10 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                 Intent intent = new Intent(getActivity(), SearchActivity.class);
                 startActivity(intent);
             }
+        });
+        downloadButtonHome.setOnClickListener(v->{
+            Intent intent = new Intent(getContext(), DownloadedVideosActivity.class);
+            startActivity(intent);
         });
         verTodos.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), MiListaActivity.class);

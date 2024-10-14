@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- AppBar con Toolbar (sin cambios) -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -52,22 +51,17 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Contenido desplazable -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-
-    <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
 
-
-
-            <!-- Video y título -->
             <FrameLayout
                 android:id="@+id/content_frame"
                 android:layout_width="match_parent"
@@ -75,36 +69,36 @@
 
                 <WebView
                     android:id="@+id/webView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:layout_gravity="center"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/gradient_overlay" />
-
-
             </FrameLayout>
-        <TextView
-            android:id="@+id/content_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:padding="16dp"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-        <!-- Botón de ver -->
+
+
+            <TextView
+                android:id="@+id/content_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:padding="16dp"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
             <Button
-            android:id="@+id/watch_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:backgroundTint="#FDF3F3"
-            android:text="@string/ver"
-            android:textColor="@color/black" />
-            <!-- Descripción -->
+                android:id="@+id/watch_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="#FDF3F3"
+                android:text="@string/ver"
+                android:textColor="@color/black" />
+
             <TextView
                 android:id="@+id/content_description"
                 android:layout_width="match_parent"
@@ -113,78 +107,54 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp" />
 
-            <!-- Botones de acción con más separación -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="16dp"
-                android:weightSum="4"
                 android:gravity="center">
 
-                <FrameLayout
+                <ImageButton
+                    android:id="@+id/add_to_list_button"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <ImageButton
-                        android:id="@+id/add_to_list_button"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_add"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@null" />
-                </FrameLayout>
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_add"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null" />
 
-                <FrameLayout
+                <ImageButton
+                    android:id="@+id/rate_button"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <ImageButton
-                        android:id="@+id/rate_button"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_like"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@null" />
-                </FrameLayout>
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_like"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null" />
 
-                <FrameLayout
+                <ImageButton
+                    android:id="@+id/share_button"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <ImageButton
-                        android:id="@+id/share_button"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_share"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@null" />
-                </FrameLayout>
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_share"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null" />
 
-                <FrameLayout
+                <ImageButton
+                    android:id="@+id/download_video_button"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-                    <ImageButton
-                        android:id="@+id/download_season_button"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_download"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@null" />
-                </FrameLayout>
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/ic_download"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null" />
             </LinearLayout>
 
-            <!-- Etiquetas de texto debajo de los botones -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="4"
                 android:layout_marginTop="4dp">
 
                 <TextView
@@ -224,7 +194,26 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressDrawable="@drawable/custom_progress_drawable"
+                android:max="100"
+                android:visibility="gone"
+                android:progress="0" />
 
+            <TextView
+                android:id="@+id/progress_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/file_name_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"/>
 
             <Spinner
                 android:id="@+id/season_spinner"
@@ -235,7 +224,6 @@
                 android:popupBackground="@android:color/black"
                 android:textColor="@android:color/white" />
 
-            <!-- RecyclerView de episodios -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/episodes_recycler_view"
                 android:layout_width="match_parent"
@@ -244,7 +232,5 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

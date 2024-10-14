@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <application
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
@@ -31,10 +32,19 @@
         <activity android:name=".Activity.PerfilInicioActivity"/>
         <activity android:name=".Activity.WelcomeActivity"/>
         <activity android:name=".Activity.MiListaActivity"/>
+        <activity android:name=".Activity.DownloadedVideosActivity" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"/>
         <activity android:name=".Activity.LoginActivity"/>
         <activity android:name=".Activity.DetailActivity" />
         <activity android:name=".Activity.SearchActivity" />
-
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
