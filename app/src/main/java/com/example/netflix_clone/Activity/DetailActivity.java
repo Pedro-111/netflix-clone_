@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -223,33 +224,38 @@ public class DetailActivity extends AppCompatActivity {
         webSettings.setDomStorageEnabled(true);
         webSettings.setGeolocationEnabled(false);
 
+
         videoView.setWebChromeClient(new WebChromeClient());
         videoView.setWebViewClient(new WebViewClient());
     }
-    private void playYouTubeVideo(String youtubeUrl) {
-        // Extraer el ID del video de la URL de YouTube
+    private void playYouTubeVideo(String youtubeUrl, int width, int height) {
         String videoId = extractYouTubeVideoId(youtubeUrl);
 
-        // Define el tamaño que deseas para el reproductor
+        // Calculate the aspect ratio (16:9)
+        int videoHeight = (width * 9) / 16;
 
-        String height = "100%";
-        String width = "100%";
+        // Asegúrate de que el JavaScript esté habilitado
         videoView.getSettings().setJavaScriptEnabled(true);
 
         String htmlContent = "<!DOCTYPE html>" +
                 "<html>" +
-                "<body style=\"margin:0;padding:0\">" +
+                "<head>" +
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">" +
+                "<style>" +
+                "body { margin: 0; padding: 0; }" +
+                ".video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }" +
+                ".video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class=\"video-container\">" +
                 "<div id=\"player\"></div>" +
+                "</div>" +
+                "<script src=\"https://www.youtube.com/iframe_api\"></script>" +
                 "<script>" +
-                "var tag = document.createElement('script');" +
-                "tag.src = \"https://www.youtube.com/iframe_api\";" +
-                "var firstScriptTag = document.getElementsByTagName('script')[0];" +
-                "firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);" +
                 "var player;" +
                 "function onYouTubeIframeAPIReady() {" +
                 "    player = new YT.Player('player', {" +
-                "        height: '" + height + "'," +  // Usar el valor de height
-                "        width: '" + width + "'," +    // Usar el valor de width
                 "        videoId: '" + videoId + "'," +
                 "        playerVars: {" +
                 "            'autoplay': 1," +
@@ -268,8 +274,11 @@ public class DetailActivity extends AppCompatActivity {
                 "</body>" +
                 "</html>";
 
-        videoView.loadData(htmlContent, "text/html", "UTF-8");
+        // Cargar el contenido HTML dentro del WebView
+        videoView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null);
     }
+
+
 
     private String extractYouTubeVideoId(String youtubeUrl) {
         String pattern = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*";
@@ -295,7 +304,20 @@ public class DetailActivity extends AppCompatActivity {
                     if (!videos.isEmpty()) {
                         videoUrl = videos.get(0).getUrl();
                         setupWebView();  // Configura el WebView
-                        playYouTubeVideo(videoUrl);  // Reproduce el video
+                        videoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                            @Override
+                            public void onGlobalLayout() {
+                                // Retira el listener para evitar múltiples llamadas
+                                videoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                                // Obtén el ancho y el alto del WebView
+                                int width = videoView.getWidth();
+                                int height = videoView.getHeight();
+
+                                // Llama a la función para reproducir el video
+                                playYouTubeVideo(videoUrl, width, height);
+                            }
+                        });
                     } else {
                         Toast.makeText(DetailActivity.this, "No se encontraron trailers", Toast.LENGTH_SHORT).show();
                     }
