@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
 import com.example.netflix_clone.Model.Request.MiListaRequest;
 import com.example.netflix_clone.Model.Response.MiListaResponse;
@@ -62,7 +63,8 @@ public class DetailActivity extends AppCompatActivity {
     private List<Season> seasons;
     private TheMovieDBApi api;
     private MiListaServiceApi miListaServiceApi;
-    private int seriesId,idPerfilActual;
+    private TrailerServiceApi trailerServiceApi;
+    private int seriesId, idPerfilActual;
     private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";
     private SharedPreferences sharedPreferences;
     private ImageButton buttonMiLista;
@@ -70,27 +72,37 @@ public class DetailActivity extends AppCompatActivity {
     private boolean isInMyList = false;
     private int idElemento = -1;
     private String mediaType;
-    // Variables para reproducir los videos
+    private ImageView posterImageView;
     private WebView videoView;
-    private TrailerServiceApi trailerServiceApi;
-
-    // Variables para descargar videos
     private ImageButton download_video;
     private ProgressBar progressBar;
     private TextView progressText, fileNameText;
     private VideoDownloader videoDownloader;
     private String videoUrl;
     private VideoStorageManager videoStorageManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        TextView contentTitle = findViewById(R.id.content_title);
-        TextView contentDescription = findViewById(R.id.content_description);
-        Button watchButton = findViewById(R.id.watch_button);
-        ImageButton searchButton = findViewById(R.id.search_button);
-        ImageView arrowBack = findViewById(R.id.arrow_back);
+        initializeViews();
+        initializeServices();
+
+        content = (Content) getIntent().getSerializableExtra("content");
+        if (content == null) {
+            Log.e(TAG, "No content received from intent");
+            Toast.makeText(this, "Error: No se pudo cargar el contenido", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        setupContent();
+        setupListeners();
+        setupRecyclerView();
+    }
+
+    private void initializeViews() {
         seasonSpinner = findViewById(R.id.season_spinner);
         episodesRecyclerView = findViewById(R.id.episodes_recycler_view);
         buttonMiLista = findViewById(R.id.add_to_list_button);
@@ -98,17 +110,39 @@ public class DetailActivity extends AppCompatActivity {
         progressText = findViewById(R.id.progress_text);
         fileNameText = findViewById(R.id.file_name_text);
         download_video = findViewById(R.id.download_video_button);
+        posterImageView = findViewById(R.id.posterImageView);
+        videoView = findViewById(R.id.webView);
+    }
+
+    private void initializeServices() {
         idPerfilActual = obtenerPerfilActual();
         videoStorageManager = new VideoStorageManager(this);
-        // Obtenemos la vista
-        videoView = findViewById(R.id.webView);
+        videoDownloader = new VideoDownloader(this);
+        api = RetrofitClient.getMovieServiceApi();
+        miListaServiceApi = RetrofitClient.getMiListaServiceApi(this);
+        trailerServiceApi = RetrofitClient.getTrailerServiceApi();
+    }
 
-        inicarServicios();
+    private void setupContent() {
+        TextView contentTitle = findViewById(R.id.content_title);
+        TextView contentDescription = findViewById(R.id.content_description);
 
-        content = (Content) getIntent().getSerializableExtra("content");
-        if (content != null && idPerfilActual != -1) {
+        contentTitle.setText(content.getTitle() != null ? content.getTitle() : content.getName());
+        contentDescription.setText(content.getOverview());
+
+        seriesId = content.getId();
+        fetchSeasons(seriesId);
+
+        if (idPerfilActual != -1) {
             checkIfInMyList();
         }
+    }
+
+    private void setupListeners() {
+        findViewById(R.id.search_button).setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
+        findViewById(R.id.arrow_back).setOnClickListener(v -> finish());
+        findViewById(R.id.watch_button).setOnClickListener(v -> Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show());
+
         buttonMiLista.setOnClickListener(v -> {
             if (isInMyList && idElemento != -1) {
                 eliminarDeMiLista(idElemento);
@@ -116,54 +150,25 @@ public class DetailActivity extends AppCompatActivity {
                 agregarAMiLista(content);
             }
         });
-        if (content != null) {
-            Log.d(TAG, "Content received: " + content.getTitle() + ", ID: " + content.getId());
-            contentTitle.setText(content.getTitle());
-            contentDescription.setText(content.getOverview());
-            //loadImage(content.getPoster_path(), contentImage);
 
-            // Asignar el ID de la serie
-            this.seriesId = content.getId();
+        download_video.setOnClickListener(v -> downloadVideo());
+    }
 
-            // Obtener temporadas y episodios
-            fetchSeasons(this.seriesId);
-        } else {
-            Log.e(TAG, "No content received from intent");
-            Toast.makeText(this, "Error: No se pudo cargar el contenido", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        // Ir a la actividad de Search_activity
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DetailActivity.this,SearchActivity.class);
-                startActivity(intent);
-            }
-        });
-        // Regresar a la actividad anterior
-        arrowBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-        watchButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show();
-            // Aquí iría la lógica para reproducir el contenido
-        });
-        // Descargar Video
-        videoDownloader = new VideoDownloader(this);
-        download_video.setOnClickListener(v->{
-            downloadVideo();
-        });
-        // Configurar RecyclerView
+    private void setupRecyclerView() {
         episodeAdapter = new EpisodeAdapter(new ArrayList<>());
         episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         episodesRecyclerView.setAdapter(episodeAdapter);
+        episodesRecyclerView.setHasFixedSize(true);
+        episodesRecyclerView.setItemViewCacheSize(20);
+        episodesRecyclerView.setDrawingCacheEnabled(true);
+        episodesRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
     }
+
     private void downloadVideo() {
-        String urlYoutube = videoUrl;
+        if (videoUrl == null || videoUrl.isEmpty()) {
+            Toast.makeText(this, "No hay video disponible para descargar", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         progressBar.setVisibility(View.VISIBLE);
         progressBar.setProgress(0);
@@ -173,35 +178,41 @@ public class DetailActivity extends AppCompatActivity {
         fileNameText.setText("Obteniendo información del archivo...");
         download_video.setEnabled(false);
 
-        videoDownloader.downloadVideo(urlYoutube, new VideoDownloader.DownloadCallback() {
+        videoDownloader.downloadVideo(videoUrl, new VideoDownloader.DownloadCallback() {
             @Override
             public void onDownloadStarted(String fileName) {
-                fileNameText.setText("Nombre: " + fileName);
+                runOnUiThread(() -> fileNameText.setText("Nombre: " + fileName));
             }
 
             @Override
             public void onProgressUpdate(int progress, String downloadedSize, String totalSize) {
-                progressBar.setProgress(progress);
-                progressText.setText(downloadedSize + " MB / " + totalSize + " MB");
+                runOnUiThread(() -> {
+                    progressBar.setProgress(progress);
+                    progressText.setText(downloadedSize + " MB / " + totalSize + " MB");
+                });
             }
 
             @Override
             public void onDownloadComplete(boolean success, String fileName) {
-                if (success) {
-                    File videoFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
-                    VideoItem videoItem = new VideoItem(content.getTitle(), videoFile.getAbsolutePath());
-                    videoStorageManager.saveVideo(videoItem);
-                    Toast.makeText(DetailActivity.this, "Descarga completada con éxito: " + fileName, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(DetailActivity.this, "Error al guardar el archivo descargado", Toast.LENGTH_SHORT).show();
-                }
-                finalizarDescarga();
+                runOnUiThread(() -> {
+                    if (success) {
+                        File videoFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
+                        VideoItem videoItem = new VideoItem(content.getTitle(), videoFile.getAbsolutePath());
+                        videoStorageManager.saveVideo(videoItem);
+                        Toast.makeText(DetailActivity.this, "Descarga completada con éxito: " + fileName, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(DetailActivity.this, "Error al guardar el archivo descargado", Toast.LENGTH_SHORT).show();
+                    }
+                    finalizarDescarga();
+                });
             }
 
             @Override
             public void onError(String errorMessage) {
-                Toast.makeText(DetailActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                finalizarDescarga();
+                runOnUiThread(() -> {
+                    Toast.makeText(DetailActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    finalizarDescarga();
+                });
             }
         });
     }
@@ -218,24 +229,19 @@ public class DetailActivity extends AppCompatActivity {
         super.onDestroy();
         videoDownloader.shutdown();
     }
+
     private void setupWebView() {
         WebSettings webSettings = videoView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setGeolocationEnabled(false);
-
-
         videoView.setWebChromeClient(new WebChromeClient());
         videoView.setWebViewClient(new WebViewClient());
     }
+
     private void playYouTubeVideo(String youtubeUrl, int width, int height) {
         String videoId = extractYouTubeVideoId(youtubeUrl);
-
-        // Calculate the aspect ratio (16:9)
         int videoHeight = (width * 9) / 16;
-
-        // Asegúrate de que el JavaScript esté habilitado
-        videoView.getSettings().setJavaScriptEnabled(true);
 
         String htmlContent = "<!DOCTYPE html>" +
                 "<html>" +
@@ -274,64 +280,65 @@ public class DetailActivity extends AppCompatActivity {
                 "</body>" +
                 "</html>";
 
-        // Cargar el contenido HTML dentro del WebView
         videoView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null);
     }
-
-
 
     private String extractYouTubeVideoId(String youtubeUrl) {
         String pattern = "(?<=watch\\?v=|/videos/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*";
         Pattern compiledPattern = Pattern.compile(pattern);
         Matcher matcher = compiledPattern.matcher(youtubeUrl);
-        if (matcher.find()) {
-            return matcher.group();
-        } else {
-            return ""; // Retorna cadena vacía si no se encuentra el ID
-        }
+        return matcher.find() ? matcher.group() : "";
     }
 
-
     private void fetchAndPlayTrailer() {
-        Toast.makeText(DetailActivity.this, "Tipo "+mediaType, Toast.LENGTH_SHORT).show();
         Call<TrailerResponse> call = trailerServiceApi.ObtenerTrailer(mediaType, content.getId());
         call.enqueue(new Callback<TrailerResponse>() {
             @Override
             public void onResponse(Call<TrailerResponse> call, Response<TrailerResponse> response) {
-
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     List<VideoData> videos = response.body().getVideos();
                     if (!videos.isEmpty()) {
                         videoUrl = videos.get(0).getUrl();
-                        setupWebView();  // Configura el WebView
-                        videoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                            @Override
-                            public void onGlobalLayout() {
-                                // Retira el listener para evitar múltiples llamadas
-                                videoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                                // Obtén el ancho y el alto del WebView
-                                int width = videoView.getWidth();
-                                int height = videoView.getHeight();
-
-                                // Llama a la función para reproducir el video
-                                playYouTubeVideo(videoUrl, width, height);
-                            }
-                        });
+                        setupWebView();
+                        videoView.setVisibility(View.VISIBLE);
+                        posterImageView.setVisibility(View.GONE);
+                        videoView.post(() -> playYouTubeVideo(videoUrl, videoView.getWidth(), videoView.getHeight()));
                     } else {
-                        Toast.makeText(DetailActivity.this, "No se encontraron trailers", Toast.LENGTH_SHORT).show();
+                        showPoster();
                     }
                 } else {
-                    Toast.makeText(DetailActivity.this, "Error al obtener el trailer", Toast.LENGTH_SHORT).show();
+                    showPoster();
                 }
             }
 
             @Override
             public void onFailure(Call<TrailerResponse> call, Throwable t) {
                 Log.e(TAG, "Error de conexión", t);
-                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show());
             }
         });
+    }
+
+    private void showPoster() {
+        runOnUiThread(() -> {
+            Toast.makeText(DetailActivity.this, "No se encontró tráiler, mostrando póster", Toast.LENGTH_SHORT).show();
+            videoView.setVisibility(View.GONE);
+            posterImageView.setVisibility(View.VISIBLE);
+            loadImage(content.getPoster_path(), posterImageView);
+        });
+    }
+
+    private void loadImage(String imagePath, ImageView imageView) {
+        if (imagePath != null && !imagePath.isEmpty()) {
+            Glide.with(this)
+                    .load(imagePath)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .into(imageView);
+        } else {
+            Log.e(TAG, "Invalid image path");
+        }
     }
 
     private void checkIfInMyList() {
@@ -343,7 +350,7 @@ public class DetailActivity extends AppCompatActivity {
                     for (MiListaResponse item : response.body()) {
                         if (item.getTmdbId() == content.getId()) {
                             isInMyList = true;
-                            idElemento = item.getIdElemento(); // Guardamos el idElemento
+                            idElemento = item.getIdElemento();
                             updateMiListaButton();
                             break;
                         }
@@ -353,13 +360,12 @@ public class DetailActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<MiListaResponse>> call, Throwable t) {
-                Toast.makeText(DetailActivity.this, "Error al verificar Mi Lista", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> Toast.makeText(DetailActivity.this, "Error al verificar Mi Lista", Toast.LENGTH_SHORT).show());
             }
         });
     }
 
-
-    private void agregarAMiLista(Content content){
+    private void agregarAMiLista(Content content) {
         if (idPerfilActual == -1) {
             Toast.makeText(this, "Error: Perfil no seleccionado", Toast.LENGTH_SHORT).show();
             return;
@@ -367,33 +373,26 @@ public class DetailActivity extends AppCompatActivity {
         String tipo = identificarPeliculaSerie();
         MiListaRequest miListaRequest = new MiListaRequest(content.getId(), tipo);
 
-        Log.d(TAG,"ID: "+content.getId());
-        Call<MiListaResponse> call = miListaServiceApi.agregarSeriePelicula(idPerfilActual,miListaRequest);
+        Call<MiListaResponse> call = miListaServiceApi.agregarSeriePelicula(idPerfilActual, miListaRequest);
         call.enqueue(new Callback<MiListaResponse>() {
             @Override
             public void onResponse(Call<MiListaResponse> call, Response<MiListaResponse> response) {
-                // Dentro del onResponse exitoso:
                 if (response.isSuccessful()) {
                     isInMyList = true;
                     updateMiListaButton();
                     Toast.makeText(DetailActivity.this, "Añadido a Mi Lista", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(DetailActivity.this,
-                            "Error al añadir a Mi Lista", Toast.LENGTH_SHORT).show();
-                }
-                if(response.code()==201){
-                    Log.d(TAG,"Elemento de mi Lista cargado correctamente: "+response.body().getIdElemento());
+                    Toast.makeText(DetailActivity.this, "Error al añadir a Mi Lista", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<MiListaResponse> call, Throwable throwable) {
-                Toast.makeText(DetailActivity.this,
-                        "Error de conexión", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
-
     }
+
     private void eliminarDeMiLista(int idElemento) {
         Call<Void> call = miListaServiceApi.eliminarDeMiLista(idPerfilActual, idElemento);
         call.enqueue(new Callback<Void>() {
@@ -518,17 +517,5 @@ public class DetailActivity extends AppCompatActivity {
                 Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void loadImage(String imagePath, ImageView imageView) {
-        if (imagePath != null && !imagePath.isEmpty()) {
-            Log.d(TAG, "Loading image: " + imagePath);
-            Glide.with(this)
-                    .load(imagePath)
-                    .into(imageView);
-        } else {
-            Log.e(TAG, "Invalid image path");
-
-        }
     }
 }

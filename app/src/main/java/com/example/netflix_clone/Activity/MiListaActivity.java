@@ -117,6 +117,7 @@ public class MiListaActivity extends AppCompatActivity {
                     TVShowDetails details = response.body();
                     Content content = new Content();
                     content.setId(details.getId());
+                    content.setName(details.getName());
                     content.setTitle(details.getName());
                     content.setPoster_path(details.getPoster_path());
                     //content.setTipo("Serie");
@@ -140,6 +141,7 @@ public class MiListaActivity extends AppCompatActivity {
                     MovieDetailsResponse details = response.body();
                     Content content = new Content();
                     content.setId(details.getId());
+                    content.setName(details.getTitle());
                     content.setTitle(details.getTitle());
                     content.setPoster_path(details.getPosterPath());
                     //content.setTipo("Película");
