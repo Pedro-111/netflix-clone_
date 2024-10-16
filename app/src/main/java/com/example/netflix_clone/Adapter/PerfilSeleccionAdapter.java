@@ -12,19 +12,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.netflix_clone.Model.Perfil;
+import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.R;
 
 import java.util.List;
 
 public class PerfilSeleccionAdapter extends RecyclerView.Adapter<PerfilSeleccionAdapter.PerfilViewHolder> {
-    private List<Perfil> perfiles;
+    private List<Perfiles> perfiles;
     private OnPerfilSelectedListener listener;
 
     public interface OnPerfilSelectedListener {
-        void onPerfilSelected(Perfil perfil);
+        void onPerfilSelected(Perfiles perfil);
     }
 
-    public PerfilSeleccionAdapter(List<Perfil> perfiles, OnPerfilSelectedListener listener) {
+    public PerfilSeleccionAdapter(List<Perfiles> perfiles, OnPerfilSelectedListener listener) {
         this.perfiles = perfiles;
         this.listener = listener;
     }
@@ -64,7 +65,7 @@ public class PerfilSeleccionAdapter extends RecyclerView.Adapter<PerfilSeleccion
             });
         }
 
-        void bind(Perfil perfil) {
+        void bind(Perfiles perfil) {
             nombrePerfilTextView.setText(perfil.getNombre());
 
             Glide.with(itemView.getContext())

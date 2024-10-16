@@ -1,5 +1,7 @@
 package com.example.netflix_clone.Activity;
 
+import static java.security.AccessController.getContext;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -26,6 +28,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
+import com.example.netflix_clone.Model.AppDatabase;
+import com.example.netflix_clone.Model.Descarga;
 import com.example.netflix_clone.Model.Request.MiListaRequest;
 import com.example.netflix_clone.Model.Response.MiListaResponse;
 import com.example.netflix_clone.Model.Response.TrailerResponse;
@@ -47,6 +51,7 @@ import com.example.netflix_clone.Service.TrailerServiceApi;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import retrofit2.Call;
@@ -174,6 +179,13 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
+    List<Episode> episodes;
+    private void setEpisodios(List<Episode> episodios){
+        this.episodes = episodios;
+    }
+    private int numeroEpisodios(){
+        return episodes.size();
+    }
     private void fetchEpisodes(int seasonNumber) {
         api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
             @Override
@@ -181,6 +193,7 @@ public class DetailActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Episode> episodes = response.body().getEpisodes();
                     episodeAdapter.updateEpisodes(episodes);
+                    setEpisodios(episodes);
                     loadVisibleEpisodeImages();
                 } else {
                     Log.e(TAG, "Error fetching episodes: " + response.code());
@@ -239,8 +252,22 @@ public class DetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (success) {
                         File videoFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
-                        VideoItem videoItem = new VideoItem(nombreSeriePelicula, videoFile.getAbsolutePath());
-                        videoStorageManager.saveVideo(videoItem);
+                        Log.d("PerfilId", "Perfil ID actual: " + idPerfilActual);
+                        // Crear objeto Descarga
+                        Descarga descarga = new Descarga();
+                        descarga.idPerfil = idPerfilActual; // Método para obtener el ID del perfil actual
+                        descarga.tmdbId = content.getId(); // Método para obtener el TMDB ID
+                        descarga.tipo = identificarPeliculaSerie();
+                        descarga.estado = "Completado";
+                        descarga.fechaDescarga = System.currentTimeMillis();
+                        descarga.rutaArchivo = videoFile.getAbsolutePath();
+                        descarga.tamanoArchivo = videoFile.length();
+                        descarga.nombreArchivo = fileName;
+                        descarga.posterPath = content.getPoster_path(); // Método para obtener la ruta del póster
+                        Log.d(TAG,"Ruta absoluta: "+videoFile.getAbsolutePath());
+                        // Guardar en Room
+                        insertarDescarga(descarga);  // Llama al método que usa Executor
+
                         Toast.makeText(DetailActivity.this, "Descarga completada con éxito: " + fileName, Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(DetailActivity.this, "Error al guardar el archivo descargado", Toast.LENGTH_SHORT).show();
@@ -249,12 +276,23 @@ public class DetailActivity extends AppCompatActivity {
                 });
             }
 
+
             @Override
             public void onError(String errorMessage) {
                 runOnUiThread(() -> {
                     Toast.makeText(DetailActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
                     finalizarDescarga();
                 });
+            }
+        });
+    }
+    private void insertarDescarga(Descarga descarga) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            long result = AppDatabase.getInstance(DetailActivity.this).descargaDao().insert(descarga);
+            if (result > 0) {
+                runOnUiThread(() -> Toast.makeText(DetailActivity.this, "Descarga guardada correctamente", Toast.LENGTH_SHORT).show());
+            } else {
+                runOnUiThread(() -> Toast.makeText(DetailActivity.this, "Error al guardar la descarga", Toast.LENGTH_SHORT).show());
             }
         });
     }
@@ -372,16 +410,22 @@ public class DetailActivity extends AppCompatActivity {
 
     private void loadImage(String imagePath, ImageView imageView) {
         if (imagePath != null && !imagePath.isEmpty()) {
-            Glide.with(this)
-                    .load(imagePath)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.ic_launcher_background)
-                    .error(R.drawable.ic_launcher_background)
-                    .into(imageView);
+            if (!isFinishing() && !isDestroyed()) {  // Verificar que la actividad no está destruida
+                Glide.with(this)
+                        .load(imagePath)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(R.drawable.ic_launcher_background)
+                        .error(R.drawable.ic_launcher_background)
+                        .into(imageView);
+            } else {
+                Log.e(TAG, "Activity is finishing or destroyed, not loading the image.");
+            }
         } else {
             Log.e(TAG, "Invalid image path");
         }
     }
+
+
 
     private void checkIfInMyList() {
         Call<List<MiListaResponse>> call = miListaServiceApi.obtenerMiListaPorUsuario(idPerfilActual);

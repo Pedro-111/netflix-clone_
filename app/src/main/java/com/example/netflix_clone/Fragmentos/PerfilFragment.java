@@ -16,19 +16,15 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.example.netflix_clone.Model.Perfil;
-import com.example.netflix_clone.Model.RetrofitClient;
+import com.example.netflix_clone.Model.AppDatabase;
+import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.R;
-import com.example.netflix_clone.Service.PerfilServiceApi;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class PerfilFragment extends Fragment {
 
     private TextView textNombre;
     private ImageView imagenPerfil;
+    private AppDatabase perfilDatabase;
 
     @Nullable
     @Override
@@ -37,6 +33,10 @@ public class PerfilFragment extends Fragment {
         textNombre = view.findViewById(R.id.textNombre);
         imagenPerfil = view.findViewById(R.id.imagen_perfil);
 
+        // Inicializar la base de datos de Room
+        perfilDatabase = AppDatabase.getInstance(getContext());
+
+        // Obtener el ID del perfil seleccionado desde SharedPreferences
         int idPerfil = obtenerPerfilSeleccionado();
         if (idPerfil != -1) {
             cargarDatosPerfil(idPerfil);
@@ -48,31 +48,21 @@ public class PerfilFragment extends Fragment {
     }
 
     private void cargarDatosPerfil(int idPerfil) {
-        PerfilServiceApi apiService = RetrofitClient.getPerfilClient("https://apilogin.somee.com", getContext()).create(PerfilServiceApi.class);
-
-        Call<Perfil> call = apiService.obtenerPerfil(idPerfil);
-
-        call.enqueue(new Callback<Perfil>() {
-            @Override
-            public void onResponse(Call<Perfil> call, Response<Perfil> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Perfil perfil = response.body();
-                    // Mostrar los datos del perfil
+        // Consultar el perfil de la base de datos de Room
+        new Thread(() -> {
+            Perfiles perfil = perfilDatabase.perfilDao().obtenerPerfilPorId(idPerfil);
+            if (perfil != null) {
+                // Actualizar la interfaz de usuario en el hilo principal
+                requireActivity().runOnUiThread(() -> {
                     textNombre.setText(perfil.getNombre());
                     Glide.with(getContext()).load(perfil.getFotoPerfilUrl()).into(imagenPerfil);
-                    Toast.makeText(requireContext(), "ID: " + perfil.getIdPerfil(), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(requireContext(), "Nombre: " + perfil.getNombre(), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(requireContext(), "Foto URL: " + perfil.getFotoPerfilUrl(), Toast.LENGTH_SHORT).show();
-                } else {
+                });
+            } else {
+                requireActivity().runOnUiThread(() -> {
                     Toast.makeText(getContext(), "Error al cargar el perfil", Toast.LENGTH_SHORT).show();
-                }
+                });
             }
-
-            @Override
-            public void onFailure(Call<Perfil> call, Throwable t) {
-                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        }).start();
     }
 
     private int obtenerPerfilSeleccionado() {

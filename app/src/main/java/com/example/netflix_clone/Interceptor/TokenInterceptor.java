@@ -108,7 +108,7 @@ public class TokenInterceptor implements Interceptor {
         }
 
         // Si la renovación falla, limpiamos los tokens
-        sharedPreferences.edit().remove("token").remove("refreshToken").apply();
+        //sharedPreferences.edit().remove("token").remove("refreshToken").apply();
         return null;
     }
 }

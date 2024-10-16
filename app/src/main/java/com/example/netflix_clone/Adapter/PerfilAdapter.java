@@ -12,24 +12,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Model.Perfil;
+import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.R;
 
 import java.util.List;
 
 public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilViewHolder> {
     private static final String TAG = "PerfilAdapter";
-    private List<Perfil> perfiles;
+    private List<Perfiles> perfiles;
     private OnPerfilSelectedListener listener;
 
     public interface OnPerfilSelectedListener {
-        void onPerfilSelected(Perfil perfil);
+        void onPerfilSelected(Perfiles perfil);
     }
 
-    public PerfilAdapter(List<Perfil> perfiles, OnPerfilSelectedListener listener) {
+    public PerfilAdapter(List<Perfiles> perfiles, OnPerfilSelectedListener listener) {
         this.perfiles = perfiles;
         this.listener = listener;
     }
-    public PerfilAdapter(List<Perfil> perfiles) {
+    public PerfilAdapter(List<Perfiles> perfiles) {
         this.perfiles = perfiles;
     }
 
@@ -43,7 +44,7 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
     @Override
     public void onBindViewHolder(@NonNull PerfilViewHolder holder, int position) {
         try {
-            Perfil perfil = perfiles.get(position);
+            Perfiles perfil = perfiles.get(position);
             holder.bind(perfil);
         } catch (Exception e) {
             Log.e(TAG, "Error en onBindViewHolder: " + e.getMessage());
@@ -68,7 +69,7 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
                 itemView.setOnClickListener(v -> {
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION && listener != null) {
-                        Perfil perfilSeleccionado = perfiles.get(position);
+                        Perfiles perfilSeleccionado = perfiles.get(position);
                         Log.d(TAG, "Perfil seleccionado: ID=" + perfilSeleccionado.getIdPerfil());
                         listener.onPerfilSelected(perfilSeleccionado);
                     }
@@ -78,7 +79,7 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
             }
         }
 
-        void bind(Perfil perfil) {
+        void bind(Perfiles perfil) {
             try {
                 if (perfil != null) {
                     nombrePerfilTextView.setText(perfil.getNombre());

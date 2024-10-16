@@ -22,7 +22,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.PerfilAdapter;
 import com.example.netflix_clone.MainActivity;
+import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.Perfil;
+import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.Model.Request.ConfirmarCorreoRequest;
 import com.example.netflix_clone.Model.Request.LoginRequest;
 import com.example.netflix_clone.Model.Response.ConfirmarCorreoResponse;
@@ -178,11 +180,14 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-    private void mostrarPerfiles(List<Perfil> perfiles) {
+    private void mostrarPerfiles(List<Perfiles> perfiles) {
         if (perfiles == null || perfiles.isEmpty()) {
             Toast.makeText(this, "No hay perfiles disponibles", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Guardar perfiles en la base de datos local
+        guardarPerfilesEnBaseDeDatos(perfiles);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog_seleccionar_perfil, null);
@@ -194,13 +199,13 @@ public class LoginActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
 
         // Debug log
-        for (Perfil perfil : perfiles) {
+        for (Perfiles perfil : perfiles) {
             Log.d(TAG, "Perfil disponible - ID: " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
         }
 
         PerfilAdapter adapter = new PerfilAdapter(perfiles, new PerfilAdapter.OnPerfilSelectedListener() {
             @Override
-            public void onPerfilSelected(Perfil perfil) {
+            public void onPerfilSelected(Perfiles perfil) {
                 try {
                     int idPerfilServidor = perfil.getIdPerfil();
                     Log.d(TAG, "Perfil seleccionado - ID: " + idPerfilServidor + ", Nombre: " + perfil.getNombre());
@@ -231,6 +236,30 @@ public class LoginActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
         dialog.show();
     }
+
+    private void guardarPerfilesEnBaseDeDatos(List<Perfiles> perfiles) {
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+
+            for (Perfiles perfil : perfiles) {
+                // Verificar si el perfil ya existe en la base de datos
+                Perfiles perfilExistente = db.perfilDao().obtenerPerfilPorId(perfil.getIdPerfil());
+
+                if (perfilExistente == null) {
+                    // Si no existe, insertar el perfil
+                    db.perfilDao().insertarPerfil(perfil);
+                    Log.d(TAG, "Perfil insertado: ID " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
+                } else {
+                    // Si ya existe, actualizar el perfil o hacer algún manejo (opcional)
+                    db.perfilDao().actualizarPerfil(perfil);
+                    Log.d(TAG, "Perfil actualizado: ID " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
+                }
+            }
+            Log.d(TAG, "Perfiles guardados/actualizados en la base de datos");
+        }).start();
+    }
+
+
 
     private void guardarPerfilSeleccionado(int idPerfil) {
         try {

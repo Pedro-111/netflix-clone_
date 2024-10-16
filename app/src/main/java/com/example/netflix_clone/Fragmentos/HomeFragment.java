@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -63,6 +62,15 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
     private ImageView verTodos;
     private ImageButton downloadButtonHome;
     private TextView textViewListaVerTodos;
+
+    // Máximo número de intentos de carga de datos
+    private final int MAX_RETRY_COUNT = 4;
+
+    // Contadores para los intentos de carga de datos
+    private int acclaimedSeriesRetryCount = 0;
+    private int dramaticSeriesRetryCount = 0;
+    private int yourNextStoryRetryCount = 0;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -75,29 +83,32 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         verTodos = view.findViewById(R.id.imageViewVerTodos);
         downloadButtonHome = view.findViewById(R.id.download_button_home);
         textViewListaVerTodos = view.findViewById(R.id.textViewListaVerTodos);
+
         ImageButton searchButton = view.findViewById(R.id.search_button);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), SearchActivity.class);
-                startActivity(intent);
-            }
+        searchButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), SearchActivity.class);
+            startActivity(intent);
         });
-        downloadButtonHome.setOnClickListener(v->{
+
+        downloadButtonHome.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), DownloadedVideosActivity.class);
             startActivity(intent);
         });
+
         verTodos.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), MiListaActivity.class);
             startActivity(intent);
         });
+
         textViewListaVerTodos.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), MiListaActivity.class);
             startActivity(intent);
         });
+
         iniciarServices();
         setupRecyclerViews();
         loadData();  // Inicialmente cargamos los datos de la API
+        Log.d("Perfil id Actual: ",""+idPerfil);
         return view;
     }
 
@@ -106,25 +117,27 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         acclaimedSeriesAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
         dramaticSeriesAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
         yourNextStoryAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
-        milistaAdapter = new ContentAdapter(new ArrayList<>(),getContext(),this);
+        milistaAdapter = new ContentAdapter(new ArrayList<>(), getContext(), this);
 
         acclaimedSeriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         dramaticSeriesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         yourNextStoryRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        milistaRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false));
+        milistaRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         acclaimedSeriesRecyclerView.setAdapter(acclaimedSeriesAdapter);
         dramaticSeriesRecyclerView.setAdapter(dramaticSeriesAdapter);
         yourNextStoryRecyclerView.setAdapter(yourNextStoryAdapter);
         milistaRecyclerView.setAdapter(milistaAdapter);
     }
+
     private void iniciarServices() {
         miListaServiceApi = RetrofitClient.getMiListaServiceApi(getContext());
         movieDBApi = RetrofitClient.getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
     }
-    private int getIdPerfil(){
+
+    private int getIdPerfil() {
         sharedPreferences = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
-        return sharedPreferences.getInt("idPerfil",-1);
+        return sharedPreferences.getInt("idPerfil", -1);
     }
 
     // Método para obtener los datos de la API
@@ -132,6 +145,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         fetchMiListaContent();
         fetchData();
     }
+
     private void fetchMiListaContent() {
         int idPerfil = getIdPerfil();
         if (idPerfil == -1) return;
@@ -150,6 +164,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
             }
         });
     }
+
     private void processMiListaResponse(List<MiListaResponse> miListaResponses) {
         List<Content> miListaContent = new ArrayList<>();
         AtomicInteger pendingRequests = new AtomicInteger(miListaResponses.size());
@@ -176,8 +191,6 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                     content.setTitle(details.getName());
                     content.setOverview(details.getOverview());
                     content.setPoster_path(details.getPoster_path());
-                    //content.setTipo("serie");
-                    // Set other necessary fields
                     miListaContent.add(content);
                 }
                 checkAndUpdateAdapter(pendingRequests, miListaContent);
@@ -200,11 +213,8 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
                     content.setId(details.getId());
                     content.setTitle(details.getTitle());
                     content.setOverview(details.getOverview());
-                    //content.set("pelicula");
                     content.setPoster_path(details.getPosterPath());
-                    // Set other necessary fields
                     miListaContent.add(content);
-                    
                 }
                 checkAndUpdateAdapter(pendingRequests, miListaContent);
             }
@@ -218,98 +228,99 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
     private void checkAndUpdateAdapter(AtomicInteger pendingRequests, List<Content> miListaContent) {
         if (pendingRequests.decrementAndGet() == 0) {
-            // Verifica si el fragmento está agregado antes de intentar acceder a la actividad
             if (isAdded()) {
                 requireActivity().runOnUiThread(() -> {
                     milistaAdapter.updateData(miListaContent);
-                    if (miListaContent.isEmpty()) {
-                        // Opcional: Mostrar un mensaje si la lista está vacía
-                        showEmptyListMessage();
-                    }
                 });
-            } else {
-                Log.e(TAG, "El fragmento no está agregado a la actividad.");
             }
         }
     }
 
-
-    private void showEmptyListMessage() {
-        // Implementa aquí la lógica para mostrar un mensaje cuando la lista está vacía
-//        // Por ejemplo, puedes tener un TextView que se hace visible
-//        //View emptyView = getView().findViewById(R.id.empty_milista_view);
-//        if (emptyView != null) {
-//            emptyView.setVisibility(View.VISIBLE);
-//            milistaRecyclerView.setVisibility(View.GONE);
-//        }
-    }
-
-    // Método para intentar recargar los datos si alguna lista está vacía
-    private void retryLoadingData() {
-        if (acclaimedSeriesAdapter.getItemCount() == 0 ||
-                dramaticSeriesAdapter.getItemCount() == 0 ||
-                yourNextStoryAdapter.getItemCount() == 0 ||
-                milistaAdapter.getItemCount() ==0
-        ) {
-            Toast.makeText(getContext(), "Reintentando cargar los datos...", Toast.LENGTH_SHORT).show();
-            fetchData();
-        }
-    }
-
-    // Método para obtener los datos de la API
     private void fetchData() {
-        movieDBApi = RetrofitClient.getMovieClient("https://api.themoviedb.org/3/").create(TheMovieDBApi.class);
+        fetchAcclaimedSeries();
+        fetchDramaticSeries();
+        fetchYourNextStory();
+    }
 
-        // Llamada a Series Aclamadas
+    private void fetchAcclaimedSeries() {
         movieDBApi.getTopRatedSeries(API_KEY, "es-ES").enqueue(new Callback<ApiResponse>() {
             @Override
             public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Content> series = response.body().getResults();
-                    acclaimedSeriesAdapter.updateData(series);
+                    acclaimedSeriesAdapter.updateData(response.body().getResults());
+                } else {
+                    retryAcclaimedSeries();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                Toast.makeText(getActivity(), "Error al cargar series aclamadas", Toast.LENGTH_SHORT).show();
-                retryLoadingData();  // Reintentar la carga si falla
+                retryAcclaimedSeries();
             }
         });
+    }
 
-        // Llamada a Series Dramáticas
-        movieDBApi.getDramaticSeries(API_KEY, "es-ES", "18").enqueue(new Callback<ApiResponse>() {
+    private void retryAcclaimedSeries() {
+        if (acclaimedSeriesRetryCount < MAX_RETRY_COUNT) {
+            acclaimedSeriesRetryCount++;
+            fetchAcclaimedSeries();
+        } else {
+            Log.e(TAG, "Failed to load acclaimed series after " + MAX_RETRY_COUNT + " attempts.");
+        }
+    }
+
+    private void fetchDramaticSeries() {
+        movieDBApi.getDramaticSeries(API_KEY, "es-ES","18").enqueue(new Callback<ApiResponse>() {
             @Override
             public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Content> series = response.body().getResults();
-                    dramaticSeriesAdapter.updateData(series);
+                    dramaticSeriesAdapter.updateData(response.body().getResults());
+                } else {
+                    retryDramaticSeries();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                Toast.makeText(getActivity(), "Error al cargar series dramáticas", Toast.LENGTH_SHORT).show();
-                retryLoadingData();  // Reintentar la carga si falla
+                retryDramaticSeries();
             }
         });
+    }
 
-        // Llamada para "Tu Próxima Historia"
+    private void retryDramaticSeries() {
+        if (dramaticSeriesRetryCount < MAX_RETRY_COUNT) {
+            dramaticSeriesRetryCount++;
+            fetchDramaticSeries();
+        } else {
+            Log.e(TAG, "Failed to load dramatic series after " + MAX_RETRY_COUNT + " attempts.");
+        }
+    }
+
+    private void fetchYourNextStory() {
         movieDBApi.getYourNextStory(API_KEY, "es-ES").enqueue(new Callback<ApiResponse>() {
             @Override
             public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Content> series = response.body().getResults();
-                    yourNextStoryAdapter.updateData(series);
+                    yourNextStoryAdapter.updateData(response.body().getResults());
+                } else {
+                    retryYourNextStory();
                 }
             }
 
             @Override
             public void onFailure(Call<ApiResponse> call, Throwable t) {
-                Toast.makeText(getActivity(), "Error al cargar tu próxima historia", Toast.LENGTH_SHORT).show();
-                retryLoadingData();  // Reintentar la carga si falla
+                retryYourNextStory();
             }
         });
+    }
+
+    private void retryYourNextStory() {
+        if (yourNextStoryRetryCount < MAX_RETRY_COUNT) {
+            yourNextStoryRetryCount++;
+            fetchYourNextStory();
+        } else {
+            Log.e(TAG, "Failed to load 'Your Next Story' after " + MAX_RETRY_COUNT + " attempts.");
+        }
     }
 
     @Override
@@ -318,10 +329,4 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
         intent.putExtra("content", content);
         startActivity(intent);
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadData(); // Cargar datos aquí
-    }
-
 }

@@ -1,9 +1,11 @@
 package com.example.netflix_clone.Activity;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,17 +27,19 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.VideoAdapter;
+import com.example.netflix_clone.Model.AppDatabase;
+import com.example.netflix_clone.Model.Descarga;
 import com.example.netflix_clone.Model.VideoItem;
 import com.example.netflix_clone.Model.VideoStorageManager;
 import com.example.netflix_clone.R;
 import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class DownloadedVideosActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private VideoAdapter adapter;
-    private VideoStorageManager videoStorageManager;
     private PlayerView playerView;
     private ExoPlayer player;
     private boolean isFullscreen = false;
@@ -44,12 +48,14 @@ public class DownloadedVideosActivity extends AppCompatActivity {
     private CoordinatorLayout rootLayout;
     private ImageView backButton;
     private ConstraintLayout constraintLayout;
-
+    private int perfilId;
+    private SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_descargas);
-
+        perfilId = obtenerPerfilActual();
+        Log.d("PerfilId", "Perfil ID actual: " + perfilId);
         initializeViews();
         setupRecyclerView();
         initializePlayer();
@@ -57,25 +63,28 @@ public class DownloadedVideosActivity extends AppCompatActivity {
         backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // Manejo de retroceso con OnBackPressedCallback
+
         OnBackPressedCallback callback = new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (isFullscreen) {
                     exitFullscreen();
-                    playerContainer.setVisibility(View.GONE); // Asegúrate de ocultar el reproductor
-                    releasePlayer(); // Libera los recursos al retroceder
+                    playerContainer.setVisibility(View.GONE);
+                    releasePlayer();
                 } else {
-                    // Si no estás en fullscreen, puedes manejarlo de otra manera o llamar a finish()
-                    finish(); // Por ejemplo, finaliza la actividad
+                    finish();
                 }
             }
         };
 
-        // Agregar el callback al dispatcher
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
+    private int obtenerPerfilActual() {
+        sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
+
+        return sharedPreferences.getInt("idPerfil", -1);
+    }
 
     private void initializeViews() {
         recyclerView = findViewById(R.id.videos_descargados);
@@ -88,22 +97,35 @@ public class DownloadedVideosActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        videoStorageManager = new VideoStorageManager(this);
-        List<VideoItem> videoItems = videoStorageManager.getVideos();
-        adapter = new VideoAdapter(videoItems);
-        recyclerView.setAdapter(adapter);
-        adapter.setOnItemClickListener(this::playVideo);
+        loadDownloadedVideos();
     }
 
+    private void loadDownloadedVideos() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Descarga> descargas = AppDatabase.getInstance(DownloadedVideosActivity.this)
+                    .descargaDao()
+                    .getDescargasByPerfil(perfilId);
+
+            // Agrega esta línea para verificar el tamaño de la lista
+            Log.d("DownloadedVideos", "Número de descargas: " + (descargas != null ? descargas.size() : 0));
+
+            runOnUiThread(() -> {
+                adapter = new VideoAdapter(descargas);
+                recyclerView.setAdapter(adapter);
+                adapter.setOnItemClickListener(DownloadedVideosActivity.this::playVideo);
+            });
+        });
+    }
+
+
     private void initializePlayer() {
-        if (player == null) { // Verifica si el reproductor ya está inicializado
+        if (player == null) {
             player = new ExoPlayer.Builder(this).build();
             playerView.setPlayer(player);
             player.addListener(new Player.Listener() {
                 @Override
                 public void onPlaybackStateChanged(int state) {
                     if (state == Player.STATE_ENDED) {
-                        // Ocultar el contenedor del reproductor cuando el video termina
                         playerContainer.setVisibility(View.GONE);
                         exitFullscreen();
                     }
@@ -112,25 +134,21 @@ public class DownloadedVideosActivity extends AppCompatActivity {
         }
     }
 
-
     private void enterFullscreen() {
         isFullscreen = true;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         appBarLayout.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
 
-        // Eliminar el reproductor de su padre actual
         if (playerContainer.getParent() != null) {
             ((ViewGroup) playerContainer.getParent()).removeView(playerContainer);
         }
 
-        // Agregar el reproductor directamente al layout raíz
         rootLayout.addView(playerContainer, new CoordinatorLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        // Ocultar la UI del sistema
         rootLayout.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
@@ -142,12 +160,10 @@ public class DownloadedVideosActivity extends AppCompatActivity {
         appBarLayout.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.VISIBLE);
 
-        // Eliminar el reproductor del layout raíz
         if (playerContainer.getParent() != null) {
             ((ViewGroup) playerContainer.getParent()).removeView(playerContainer);
         }
 
-        // Agregar el reproductor de nuevo al layout de restricción
         ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 getResources().getDimensionPixelSize(R.dimen.player_height)
@@ -155,23 +171,18 @@ public class DownloadedVideosActivity extends AppCompatActivity {
         params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
         constraintLayout.addView(playerContainer, 0, params);
 
-        // Mostrar la UI del sistema
         rootLayout.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
 
-        // Asegúrate de que el reproductor esté oculto
         playerContainer.setVisibility(View.GONE);
-
-        // Liberar los recursos del reproductor
         releasePlayer();
     }
 
-    private void playVideo(VideoItem item) {
-        // Verifica si el reproductor es nulo y lo inicializa
+    private void playVideo(Descarga descarga) {
         if (player == null) {
-            initializePlayer(); // Asegúrate de que este método inicialice el reproductor
+            initializePlayer();
         }
 
-        Uri videoUri = videoStorageManager.getVideoUri(item.getVideoPath());
+        Uri videoUri = Uri.parse(descarga.rutaArchivo);
         if (videoUri != null) {
             MediaItem mediaItem = MediaItem.fromUri(videoUri);
             player.setMediaItem(mediaItem);
@@ -184,7 +195,6 @@ public class DownloadedVideosActivity extends AppCompatActivity {
             Toast.makeText(this, "Video not found", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {

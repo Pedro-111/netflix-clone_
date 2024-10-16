@@ -15,13 +15,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.netflix_clone.Adapter.PerfilAdapter;
 import com.example.netflix_clone.MainActivity;
+import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.GridSpacingItemDecoration;
 import com.example.netflix_clone.Model.Perfil;
+import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.PerfilServiceApi;
 
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import com.example.netflix_clone.Adapter.PerfilSeleccionAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,13 +60,13 @@ public class PerfilInicioActivity extends AppCompatActivity {
 
     private void cargarPerfiles() {
         PerfilServiceApi service = RetrofitClient.getPerfilServiceApi(this);
-        Call<List<Perfil>> call = service.obtenerPerfiles();
+        Call<List<Perfiles>> call = service.obtenerPerfiles();
 
-        call.enqueue(new Callback<List<Perfil>>() {
+        call.enqueue(new Callback<List<Perfiles>>() {
             @Override
-            public void onResponse(Call<List<Perfil>> call, Response<List<Perfil>> response) {
+            public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Perfil> perfiles = response.body();
+                    List<Perfiles> perfiles = response.body();
                     setupRecyclerView(perfiles);
                     currentRetry = 0; // Reiniciar el contador de reintentos si es exitoso
                 } else {
@@ -70,11 +75,38 @@ public class PerfilInicioActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Perfil>> call, Throwable t) {
-                handleError("Error de conexión: " + t.getMessage());
+            public void onFailure(Call<List<Perfiles>> call, Throwable t) {
+                // Intentar cargar perfiles de la base de datos local
+                cargarPerfilesDesdeBaseDeDatos();
             }
         });
     }
+
+    private void cargarPerfilesDesdeBaseDeDatos() {
+        // Crear un Executor para realizar operaciones en segundo plano
+        Executor executor = Executors.newSingleThreadExecutor();
+
+        // Ejecutar la operación en segundo plano
+        executor.execute(() -> {
+            // Obtener la instancia de la base de datos
+            AppDatabase database = AppDatabase.getInstance(this);
+
+            // Realizar la consulta de perfiles en un hilo de fondo
+            List<Perfiles> perfiles = database.perfilDao().obtenerPerfiles();
+
+            // Volver al hilo principal para actualizar la UI
+            runOnUiThread(() -> {
+                if (perfiles != null && !perfiles.isEmpty()) {
+                    // Si hay perfiles, actualizar el RecyclerView
+                    setupRecyclerView(perfiles);
+                } else {
+                    // Mostrar mensaje si no hay perfiles en la base de datos
+                    Toast.makeText(this, "No se encontraron perfiles, intenta conectarte a Internet.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
 
     private void handleError(String errorMessage) {
         Log.e(TAG, errorMessage);
@@ -98,7 +130,7 @@ public class PerfilInicioActivity extends AppCompatActivity {
         }
     }
 
-    private void setupRecyclerView(List<Perfil> perfiles) {
+    private void setupRecyclerView(List<Perfiles> perfiles) {
         perfilAdapter = new PerfilSeleccionAdapter(perfiles, perfil -> {
             try {
                 int idPerfilServidor = perfil.getIdPerfil();

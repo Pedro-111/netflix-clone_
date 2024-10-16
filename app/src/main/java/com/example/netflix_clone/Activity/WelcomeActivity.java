@@ -119,7 +119,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private void verificarSesion() {
         String token = sharedPreferences.getString("token", null);
-
+        Log.d("Token","Value: "+token);
         if (token != null) {
             // Hay un token, asumimos que la sesión es válida
             // El interceptor se encargará de renovar el token si es necesario
@@ -135,11 +135,7 @@ public class WelcomeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-//    private void iniciarMainActivity() {
-//        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//        startActivity(intent);
-//    }
+
 
     private void updateTextsForPage(int position) {
         switch (position) {

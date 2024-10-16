@@ -1,6 +1,7 @@
 package com.example.netflix_clone.Model.Response;
 
 import com.example.netflix_clone.Model.Perfil;
+import com.example.netflix_clone.Model.Perfiles;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class LoginResponse {
     @SerializedName("refreshToken")
     private String refreshToken;
 
-    private List<Perfil> perfiles;
+    private List<Perfiles> perfiles;
 
     public boolean isSuccess(){
         return this.isSuccess;
@@ -25,7 +26,7 @@ public class LoginResponse {
         return this.refreshToken;
     }
 
-    public List<Perfil> getPerfiles() {
+    public List<Perfiles> getPerfiles() {
         return perfiles;
     }
 }
