@@ -79,13 +79,13 @@
                 android:id="@+id/passwordField"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
                 android:hint="Contraseña"
                 android:inputType="textPassword"
-                android:textColorHint="@color/white"
-                android:textColor="@android:color/white"
-                android:paddingVertical="10dp"
                 android:paddingHorizontal="8dp"
-                android:background="@android:color/transparent"
+                android:paddingVertical="10dp"
+                android:textColor="@android:color/white"
+                android:textColorHint="@color/white"
                 android:textCursorDrawable="@null" />
         </com.google.android.material.textfield.TextInputLayout>
 

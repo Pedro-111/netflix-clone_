@@ -6,20 +6,20 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -80,7 +80,7 @@ public class DetailActivity extends AppCompatActivity {
     private VideoDownloader videoDownloader;
     private String videoUrl;
     private VideoStorageManager videoStorageManager;
-
+    private String nombreSeriePelicula;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,13 +121,15 @@ public class DetailActivity extends AppCompatActivity {
         api = RetrofitClient.getMovieServiceApi();
         miListaServiceApi = RetrofitClient.getMiListaServiceApi(this);
         trailerServiceApi = RetrofitClient.getTrailerServiceApi();
+
     }
 
     private void setupContent() {
         TextView contentTitle = findViewById(R.id.content_title);
         TextView contentDescription = findViewById(R.id.content_description);
 
-        contentTitle.setText(content.getTitle() != null ? content.getTitle() : content.getName());
+        nombreSeriePelicula = content.getTitle() != null ? content.getTitle() : content.getName();
+        contentTitle.setText(nombreSeriePelicula);
         contentDescription.setText(content.getOverview());
 
         seriesId = content.getId();
@@ -162,8 +164,48 @@ public class DetailActivity extends AppCompatActivity {
         episodesRecyclerView.setItemViewCacheSize(20);
         episodesRecyclerView.setDrawingCacheEnabled(true);
         episodesRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-    }
 
+        // Agregar un ScrollListener para cargar imágenes cuando sean visibles
+        episodesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                loadVisibleEpisodeImages();
+            }
+        });
+    }
+    private void fetchEpisodes(int seasonNumber) {
+        api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
+            @Override
+            public void onResponse(Call<SeasonDetails> call, Response<SeasonDetails> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Episode> episodes = response.body().getEpisodes();
+                    episodeAdapter.updateEpisodes(episodes);
+                    loadVisibleEpisodeImages();
+                } else {
+                    Log.e(TAG, "Error fetching episodes: " + response.code());
+                    Toast.makeText(DetailActivity.this, "Error al cargar los episodios", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SeasonDetails> call, Throwable t) {
+                Log.e(TAG, "Error fetching episodes", t);
+                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void loadVisibleEpisodeImages() {
+        LinearLayoutManager layoutManager = (LinearLayoutManager) episodesRecyclerView.getLayoutManager();
+        if (layoutManager != null) {
+            int firstVisible = layoutManager.findFirstVisibleItemPosition();
+            int lastVisible = layoutManager.findLastVisibleItemPosition();
+
+            for (int i = firstVisible; i <= lastVisible; i++) {
+                episodeAdapter.loadImageForPosition(i);
+            }
+        }
+    }
     private void downloadVideo() {
         if (videoUrl == null || videoUrl.isEmpty()) {
             Toast.makeText(this, "No hay video disponible para descargar", Toast.LENGTH_SHORT).show();
@@ -197,7 +239,7 @@ public class DetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (success) {
                         File videoFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
-                        VideoItem videoItem = new VideoItem(content.getTitle(), videoFile.getAbsolutePath());
+                        VideoItem videoItem = new VideoItem(nombreSeriePelicula, videoFile.getAbsolutePath());
                         videoStorageManager.saveVideo(videoItem);
                         Toast.makeText(DetailActivity.this, "Descarga completada con éxito: " + fileName, Toast.LENGTH_LONG).show();
                     } else {
@@ -431,11 +473,7 @@ public class DetailActivity extends AppCompatActivity {
         int idPerfil = sharedPreferences.getInt("idPerfil",-1);
         return idPerfil;
     }
-    private void inicarServicios() {
-        api = RetrofitClient.getMovieServiceApi();
-        miListaServiceApi = RetrofitClient.getMiListaServiceApi(this);
-        trailerServiceApi = RetrofitClient.getTrailerServiceApi();
-    }
+
     private String identificarPeliculaSerie() {
         if (seasons == null || seasons.isEmpty()) {
             return "Película";
@@ -495,27 +533,5 @@ public class DetailActivity extends AppCompatActivity {
         if (!seasons.isEmpty()) {
             seasonSpinner.setSelection(seasons.size() - 1);
         }
-    }
-
-    private void fetchEpisodes(int seasonNumber) {
-        api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
-            @Override
-            public void onResponse(Call<SeasonDetails> call, Response<SeasonDetails> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Episode> episodes = response.body().getEpisodes();
-                    Log.d(TAG, "Episodes fetched: " + episodes.size());
-                    episodeAdapter.updateEpisodes(episodes);
-                } else {
-                    Log.e(TAG, "Error fetching episodes: " + response.code());
-                    Toast.makeText(DetailActivity.this, "Error al cargar los episodios", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<SeasonDetails> call, Throwable t) {
-                Log.e(TAG, "Error fetching episodes", t);
-                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }
