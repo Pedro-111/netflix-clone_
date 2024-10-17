@@ -37,7 +37,7 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
     @NonNull
     @Override
     public PerfilViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_perfil, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_perfil_dialog, parent, false);
         return new PerfilViewHolder(view);
     }
 
@@ -63,8 +63,8 @@ public class PerfilAdapter extends RecyclerView.Adapter<PerfilAdapter.PerfilView
         PerfilViewHolder(@NonNull View itemView) {
             super(itemView);
             try {
-                perfilImageView = itemView.findViewById(R.id.perfilImageView);
-                nombrePerfilTextView = itemView.findViewById(R.id.nombrePerfilTextView);
+                perfilImageView = itemView.findViewById(R.id.imagenPerfil);
+                nombrePerfilTextView = itemView.findViewById(R.id.nombrePerfil);
 
                 itemView.setOnClickListener(v -> {
                     int position = getAdapterPosition();

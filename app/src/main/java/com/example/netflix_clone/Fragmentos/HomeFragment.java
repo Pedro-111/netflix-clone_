@@ -160,7 +160,7 @@ public class HomeFragment extends Fragment implements ContentAdapter.OnItemClick
 
             @Override
             public void onFailure(Call<List<MiListaResponse>> call, Throwable t) {
-                Toast.makeText(getContext(), "Error al cargar Mi Lista", Toast.LENGTH_SHORT).show();
+                Log.d("Home Fragment", "Error al cargar Mi Lista");
             }
         });
     }

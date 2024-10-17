@@ -2,6 +2,7 @@ package com.example.netflix_clone.Fragmentos;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.netflix_clone.Fragmentos.Dialog.PerfilesBottomSheetFragment;
 import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.Perfiles;
 import com.example.netflix_clone.R;
@@ -33,10 +35,8 @@ public class PerfilFragment extends Fragment {
         textNombre = view.findViewById(R.id.textNombre);
         imagenPerfil = view.findViewById(R.id.imagen_perfil);
 
-        // Inicializar la base de datos de Room
         perfilDatabase = AppDatabase.getInstance(getContext());
 
-        // Obtener el ID del perfil seleccionado desde SharedPreferences
         int idPerfil = obtenerPerfilSeleccionado();
         if (idPerfil != -1) {
             cargarDatosPerfil(idPerfil);
@@ -44,29 +44,48 @@ public class PerfilFragment extends Fragment {
             Toast.makeText(requireContext(), "No se ha seleccionado un perfil", Toast.LENGTH_SHORT).show();
         }
 
+        view.findViewById(R.id.layoutCambiarPerfil).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mostrarPerfilesBottomSheet();
+            }
+        });
+
         return view;
     }
 
-    private void cargarDatosPerfil(int idPerfil) {
-        // Consultar el perfil de la base de datos de Room
-        new Thread(() -> {
-            Perfiles perfil = perfilDatabase.perfilDao().obtenerPerfilPorId(idPerfil);
-            if (perfil != null) {
-                // Actualizar la interfaz de usuario en el hilo principal
-                requireActivity().runOnUiThread(() -> {
-                    textNombre.setText(perfil.getNombre());
-                    Glide.with(getContext()).load(perfil.getFotoPerfilUrl()).into(imagenPerfil);
-                });
-            } else {
-                requireActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "Error al cargar el perfil", Toast.LENGTH_SHORT).show();
-                });
+    private void mostrarPerfilesBottomSheet() {
+        PerfilesBottomSheetFragment bottomSheetFragment = new PerfilesBottomSheetFragment();
+        bottomSheetFragment.show(getChildFragmentManager(), "PerfilesBottomSheet");
+    }
+
+    public void cargarDatosPerfil(final int idPerfil) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Perfiles perfil = perfilDatabase.perfilDao().obtenerPerfilPorId(idPerfil);
+                if (perfil != null) {
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textNombre.setText(perfil.getNombre());
+                            Glide.with(getContext()).load(perfil.getFotoPerfilUrl()).into(imagenPerfil);
+                        }
+                    });
+                } else {
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Error al cargar el perfil", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         }).start();
     }
 
     private int obtenerPerfilSeleccionado() {
-        SharedPreferences prefs = getContext().getSharedPreferences("MyApp", MODE_PRIVATE);
-        return prefs.getInt("idPerfil", -1);  // Retorna -1 si no hay un perfil guardado
+        SharedPreferences prefs = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+        return prefs.getInt("idPerfil", -1);
     }
 }
