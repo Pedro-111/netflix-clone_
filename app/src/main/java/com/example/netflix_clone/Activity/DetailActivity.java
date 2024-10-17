@@ -86,6 +86,7 @@ public class DetailActivity extends AppCompatActivity {
     private String videoUrl;
     private VideoStorageManager videoStorageManager;
     private String nombreSeriePelicula;
+    private ImageView downloadButtonDetail;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -158,9 +159,15 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
 
+        downloadButtonDetail = findViewById(R.id.download_button_detail);
+        downloadButtonDetail.setOnClickListener(v->irADescargas());
+
         download_video.setOnClickListener(v -> downloadVideo());
     }
-
+    private void irADescargas(){
+        Intent intent = new Intent(DetailActivity.this,DownloadedVideosActivity.class);
+        startActivity(intent);
+    }
     private void setupRecyclerView() {
         episodeAdapter = new EpisodeAdapter(new ArrayList<>());
         episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
