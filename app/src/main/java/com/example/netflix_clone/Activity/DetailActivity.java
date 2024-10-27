@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -87,6 +89,11 @@ public class DetailActivity extends AppCompatActivity {
     private VideoStorageManager videoStorageManager;
     private String nombreSeriePelicula;
     private ImageView downloadButtonDetail;
+    private List<Episode> allEpisodes; // Store all episodes
+    private List<Episode> displayedEpisodes; // Store currently displayed episodes
+    private static final int LOAD_LIMIT = 5; // Number of episodes to load at once
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -169,20 +176,34 @@ public class DetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
     private void setupRecyclerView() {
-        episodeAdapter = new EpisodeAdapter(new ArrayList<>());
-        episodesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        displayedEpisodes = new ArrayList<>();
+        episodeAdapter = new EpisodeAdapter(displayedEpisodes);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        episodesRecyclerView.setLayoutManager(layoutManager);
         episodesRecyclerView.setAdapter(episodeAdapter);
-        episodesRecyclerView.setHasFixedSize(true);
-        episodesRecyclerView.setItemViewCacheSize(20);
-        episodesRecyclerView.setDrawingCacheEnabled(true);
-        episodesRecyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
-        // Agregar un ScrollListener para cargar imágenes cuando sean visibles
         episodesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                loadVisibleEpisodeImages();
+
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                // Check if we need to load more items
+                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
+                        && firstVisibleItemPosition >= 0
+                        && totalItemCount < allEpisodes.size()) {
+
+                    // Post the update to the next frame
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            obtenerSiguientesNumeros();
+                        }
+                    });
+                }
             }
         });
     }
@@ -190,17 +211,52 @@ public class DetailActivity extends AppCompatActivity {
     private void setEpisodios(List<Episode> episodios){
         this.episodes = episodios;
     }
-    private int numeroEpisodios(){
-        return episodes.size();
+    private void obtenerPrimerosEpisodios() {
+        if (allEpisodes == null) return;
+
+        displayedEpisodes.clear();
+        int initialLoad = Math.min(LOAD_LIMIT, allEpisodes.size());
+
+        List<Episode> initialEpisodes = allEpisodes.subList(0, initialLoad);
+        displayedEpisodes.addAll(initialEpisodes);
+
+        Log.d(TAG, "Cargando primeros " + initialLoad + " episodios de " + allEpisodes.size());
+        episodeAdapter.updateEpisodes(displayedEpisodes);
+    }
+
+    private void obtenerSiguientesNumeros() {
+        if (allEpisodes == null || displayedEpisodes.size() >= allEpisodes.size()) {
+            Log.d(TAG, "No hay más episodios para cargar");
+            return;
+        }
+
+        int startIndex = displayedEpisodes.size();
+        int endIndex = Math.min(startIndex + LOAD_LIMIT, allEpisodes.size());
+
+        // Create a new list for the next batch of episodes
+        List<Episode> nextEpisodes = new ArrayList<>(
+                allEpisodes.subList(startIndex, endIndex)
+        );
+
+        // Add to displayed episodes list
+        displayedEpisodes.addAll(nextEpisodes);
+
+        Log.d(TAG, "Cargando episodios desde " + startIndex + " hasta " + endIndex);
+        episodeAdapter.addEpisodes(nextEpisodes);
+    }
+
+    private int numeroEpisodios() {
+        return allEpisodes != null ? allEpisodes.size() : 0;
     }
     private void fetchEpisodes(int seasonNumber) {
         api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
             @Override
             public void onResponse(Call<SeasonDetails> call, Response<SeasonDetails> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Episode> episodes = response.body().getEpisodes();
-                    episodeAdapter.updateEpisodes(episodes);
-                    setEpisodios(episodes);
+                    Log.d(TAG, "Received response with episodes: " + response.body().getEpisodes().size());
+                    allEpisodes = response.body().getEpisodes();
+                    displayedEpisodes.clear();
+                    obtenerPrimerosEpisodios();
                     loadVisibleEpisodeImages();
                 } else {
                     Log.e(TAG, "Error fetching episodes: " + response.code());
