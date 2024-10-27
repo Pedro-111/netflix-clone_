@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -23,11 +24,14 @@ import com.example.netflix_clone.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeViewHolder> {
+public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final String TAG = "EpisodeAdapter";
     private List<Episode> episodes;
     private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w200";
+    private boolean isLoadingMore = false;
+    private static final int VIEW_TYPE_ITEM = 0;
+    private static final int VIEW_TYPE_LOADING = 1;
 
     public EpisodeAdapter(List<Episode> episodes) {
         this.episodes = episodes != null ? new ArrayList<>(episodes) : new ArrayList<>();
@@ -35,24 +39,46 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
 
     @NonNull
     @Override
-    public EpisodeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_episode, parent, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_LOADING) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_loading, parent, false);
+            return new LoadingViewHolder(view);
+        }
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_episode, parent, false);
         return new EpisodeViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull EpisodeViewHolder holder, int position) {
-        if (position < episodes.size()) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof EpisodeViewHolder) {
             Episode episode = episodes.get(position);
-            Log.d(TAG, "Binding episode at position " + position + ": " + episode.getName());
-            holder.bind(episode);
-            holder.loadImage(episode.getStillPath());
+            ((EpisodeViewHolder) holder).bind(episode);
+            ((EpisodeViewHolder) holder).loadImage(episode.getStillPath());
         }
+        // No se necesita acción adicional para LoadingViewHolder
     }
 
     @Override
     public int getItemCount() {
-        return episodes != null ? episodes.size() : 0;
+        return episodes.size() + (isLoadingMore ? 1 : 0);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return (position == episodes.size() && isLoadingMore) ? VIEW_TYPE_LOADING : VIEW_TYPE_ITEM;
+    }
+
+    public void setLoadingMore(boolean loadingMore) {
+        if (this.isLoadingMore != loadingMore) {
+            this.isLoadingMore = loadingMore;
+            if (loadingMore) {
+                notifyItemInserted(episodes.size());
+            } else {
+                notifyItemRemoved(episodes.size());
+            }
+        }
     }
 
     public void updateEpisodes(List<Episode> newEpisodes) {
@@ -125,6 +151,15 @@ public class EpisodeAdapter extends RecyclerView.Adapter<EpisodeAdapter.EpisodeV
                 Log.w(TAG, "Still path is null or empty");
                 episodeThumbnail.setImageResource(R.drawable.ic_launcher_background);
             }
+        }
+    }
+
+    private static class LoadingViewHolder extends RecyclerView.ViewHolder {
+        ProgressBar progressBar;
+
+        LoadingViewHolder(View itemView) {
+            super(itemView);
+            progressBar = itemView.findViewById(R.id.progress_bar);
         }
     }
 }

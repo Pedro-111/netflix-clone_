@@ -230,19 +230,30 @@ public class DetailActivity extends AppCompatActivity {
             return;
         }
 
-        int startIndex = displayedEpisodes.size();
-        int endIndex = Math.min(startIndex + LOAD_LIMIT, allEpisodes.size());
+        // Mostrar un indicador de carga si lo deseas
+        episodeAdapter.setLoadingMore(true);
 
-        // Create a new list for the next batch of episodes
-        List<Episode> nextEpisodes = new ArrayList<>(
-                allEpisodes.subList(startIndex, endIndex)
-        );
+        // Simular delay de carga con Handler
+        new Handler().postDelayed(() -> {
+            int startIndex = displayedEpisodes.size();
+            int endIndex = Math.min(startIndex + LOAD_LIMIT, allEpisodes.size());
 
-        // Add to displayed episodes list
-        displayedEpisodes.addAll(nextEpisodes);
+            // Crear una nueva lista para el siguiente lote de episodios
+            List<Episode> nextEpisodes = new ArrayList<>(
+                    allEpisodes.subList(startIndex, endIndex)
+            );
 
-        Log.d(TAG, "Cargando episodios desde " + startIndex + " hasta " + endIndex);
-        episodeAdapter.addEpisodes(nextEpisodes);
+            // Añadir a la lista de episodios mostrados
+            displayedEpisodes.addAll(nextEpisodes);
+
+            Log.d(TAG, "Cargando episodios desde " + startIndex + " hasta " + endIndex);
+
+            // Actualizar el adaptador y quitar el indicador de carga
+            runOnUiThread(() -> {
+                episodeAdapter.setLoadingMore(false);
+                episodeAdapter.addEpisodes(nextEpisodes);
+            });
+        }, 2000); // Delay de 2000ms
     }
 
     private int numeroEpisodios() {
