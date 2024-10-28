@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -91,7 +92,9 @@ public class DetailActivity extends AppCompatActivity {
     private ImageView downloadButtonDetail;
     private List<Episode> allEpisodes; // Store all episodes
     private List<Episode> displayedEpisodes; // Store currently displayed episodes
-    private static final int LOAD_LIMIT = 5; // Number of episodes to load at once
+    private static final int PAGE_SIZE = 5;
+    private boolean isLoading = false;
+    private int currentPage = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
@@ -176,8 +179,7 @@ public class DetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
     private void setupRecyclerView() {
-        displayedEpisodes = new ArrayList<>();
-        episodeAdapter = new EpisodeAdapter(displayedEpisodes);
+        episodeAdapter = new EpisodeAdapter();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         episodesRecyclerView.setLayoutManager(layoutManager);
         episodesRecyclerView.setAdapter(episodeAdapter);
@@ -187,73 +189,69 @@ public class DetailActivity extends AppCompatActivity {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                int visibleItemCount = layoutManager.getChildCount();
-                int totalItemCount = layoutManager.getItemCount();
-                int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                if (!isLoading) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                // Check if we need to load more items
-                if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
-                        && firstVisibleItemPosition >= 0
-                        && totalItemCount < allEpisodes.size()) {
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 5
+                            && firstVisibleItemPosition >= 0
+                            && hasMoreEpisodes()) {
 
-                    // Post the update to the next frame
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            obtenerSiguientesNumeros();
-                        }
-                    });
+                        // Usar postDelayed para evitar modificar el RecyclerView durante el scroll
+                        mainHandler.post(() -> loadMoreEpisodes());
+                    }
                 }
             }
         });
     }
-    List<Episode> episodes;
-    private void setEpisodios(List<Episode> episodios){
-        this.episodes = episodios;
-    }
-    private void obtenerPrimerosEpisodios() {
-        if (allEpisodes == null) return;
-
-        displayedEpisodes.clear();
-        int initialLoad = Math.min(LOAD_LIMIT, allEpisodes.size());
-
-        List<Episode> initialEpisodes = allEpisodes.subList(0, initialLoad);
-        displayedEpisodes.addAll(initialEpisodes);
-
-        Log.d(TAG, "Cargando primeros " + initialLoad + " episodios de " + allEpisodes.size());
-        episodeAdapter.updateEpisodes(displayedEpisodes);
+    private boolean hasMoreEpisodes() {
+        return allEpisodes != null &&
+                (currentPage * PAGE_SIZE) < allEpisodes.size();
     }
 
-    private void obtenerSiguientesNumeros() {
-        if (allEpisodes == null || displayedEpisodes.size() >= allEpisodes.size()) {
-            Log.d(TAG, "No hay más episodios para cargar");
-            return;
-        }
+    private void loadMoreEpisodes() {
+        if (isLoading || !hasMoreEpisodes()) return;
 
-        // Mostrar un indicador de carga si lo deseas
+        isLoading = true;
         episodeAdapter.setLoadingMore(true);
 
-        // Simular delay de carga con Handler
-        new Handler().postDelayed(() -> {
-            int startIndex = displayedEpisodes.size();
-            int endIndex = Math.min(startIndex + LOAD_LIMIT, allEpisodes.size());
+        mainHandler.postDelayed(() -> {
+            int startIndex = currentPage * PAGE_SIZE;
+            int endIndex = Math.min(startIndex + PAGE_SIZE, allEpisodes.size());
 
-            // Crear una nueva lista para el siguiente lote de episodios
             List<Episode> nextEpisodes = new ArrayList<>(
                     allEpisodes.subList(startIndex, endIndex)
             );
 
-            // Añadir a la lista de episodios mostrados
-            displayedEpisodes.addAll(nextEpisodes);
-
-            Log.d(TAG, "Cargando episodios desde " + startIndex + " hasta " + endIndex);
-
-            // Actualizar el adaptador y quitar el indicador de carga
-            runOnUiThread(() -> {
-                episodeAdapter.setLoadingMore(false);
+            // Actualizar el adapter en el hilo principal
+            mainHandler.post(() -> {
                 episodeAdapter.addEpisodes(nextEpisodes);
+                episodeAdapter.setLoadingMore(false);
+                isLoading = false;
+                currentPage++;
             });
-        }, 2000); // Delay de 2000ms
+        }, 2000);
+    }
+
+
+    List<Episode> episodes;
+    private void setEpisodios(List<Episode> episodios){
+        this.episodes = episodios;
+    }
+
+    private void obtenerPrimerosEpisodios() {
+        if (allEpisodes == null) return;
+
+        displayedEpisodes.clear();
+        int initialLoad = Math.min(PAGE_SIZE, allEpisodes.size());
+
+        List<Episode> initialEpisodes = new ArrayList<>(
+                allEpisodes.subList(0, initialLoad)
+        );
+
+        displayedEpisodes.addAll(initialEpisodes);
+        episodeAdapter.addEpisodes(displayedEpisodes);
     }
 
     private int numeroEpisodios() {
@@ -264,35 +262,41 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<SeasonDetails> call, Response<SeasonDetails> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Received response with episodes: " + response.body().getEpisodes().size());
                     allEpisodes = response.body().getEpisodes();
-                    displayedEpisodes.clear();
-                    obtenerPrimerosEpisodios();
-                    loadVisibleEpisodeImages();
+                    currentPage = 0;
+
+                    mainHandler.post(() -> {
+                        episodeAdapter.clear();
+                        loadMoreEpisodes();
+                    });
                 } else {
                     Log.e(TAG, "Error fetching episodes: " + response.code());
-                    Toast.makeText(DetailActivity.this, "Error al cargar los episodios", Toast.LENGTH_SHORT).show();
+                    mainHandler.post(() ->
+                            Toast.makeText(DetailActivity.this, "Error al cargar los episodios", Toast.LENGTH_SHORT).show()
+                    );
                 }
             }
 
             @Override
             public void onFailure(Call<SeasonDetails> call, Throwable t) {
                 Log.e(TAG, "Error fetching episodes", t);
-                Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+                mainHandler.post(() ->
+                        Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show()
+                );
             }
         });
     }
-    private void loadVisibleEpisodeImages() {
-        LinearLayoutManager layoutManager = (LinearLayoutManager) episodesRecyclerView.getLayoutManager();
-        if (layoutManager != null) {
-            int firstVisible = layoutManager.findFirstVisibleItemPosition();
-            int lastVisible = layoutManager.findLastVisibleItemPosition();
-
-            for (int i = firstVisible; i <= lastVisible; i++) {
-                episodeAdapter.loadImageForPosition(i);
-            }
-        }
-    }
+//    private void loadVisibleEpisodeImages() {
+//        LinearLayoutManager layoutManager = (LinearLayoutManager) episodesRecyclerView.getLayoutManager();
+//        if (layoutManager != null) {
+//            int firstVisible = layoutManager.findFirstVisibleItemPosition();
+//            int lastVisible = layoutManager.findLastVisibleItemPosition();
+//
+//            for (int i = firstVisible; i <= lastVisible; i++) {
+//                episodeAdapter.loadImageForPosition(i);
+//            }
+//        }
+//    }
     private void downloadVideo() {
         if (videoUrl == null || videoUrl.isEmpty()) {
             Toast.makeText(this, "No hay video disponible para descargar", Toast.LENGTH_SHORT).show();

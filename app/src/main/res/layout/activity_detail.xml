@@ -235,10 +235,14 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/episodes_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="visible"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:fadeScrollbars="false"
+                android:scrollbarStyle="outsideOverlay"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -1,5 +1,6 @@
 package com.example.netflix_clone.Adapter;
 
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
@@ -25,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
     private static final String TAG = "EpisodeAdapter";
     private List<Episode> episodes;
     private static final String IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w200";
@@ -33,8 +34,8 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_ITEM = 0;
     private static final int VIEW_TYPE_LOADING = 1;
 
-    public EpisodeAdapter(List<Episode> episodes) {
-        this.episodes = episodes != null ? new ArrayList<>(episodes) : new ArrayList<>();
+    public EpisodeAdapter() {
+        this.episodes = new ArrayList<>();
     }
 
     @NonNull
@@ -57,7 +58,6 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((EpisodeViewHolder) holder).bind(episode);
             ((EpisodeViewHolder) holder).loadImage(episode.getStillPath());
         }
-        // No se necesita acción adicional para LoadingViewHolder
     }
 
     @Override
@@ -81,33 +81,25 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    public void updateEpisodes(List<Episode> newEpisodes) {
-        if (newEpisodes != null) {
-            this.episodes = new ArrayList<>(newEpisodes);
-            notifyDataSetChanged();
-            Log.d(TAG, "Updated episodes list. New size: " + episodes.size());
-        } else {
-            Log.w(TAG, "Attempted to update with null episodes list");
-        }
-    }
-
-    public void addEpisodes(List<Episode> moreEpisodes) {
-        if (moreEpisodes != null && !moreEpisodes.isEmpty()) {
+    public void addEpisodes(List<Episode> newEpisodes) {
+        if (newEpisodes != null && !newEpisodes.isEmpty()) {
             int startPosition = episodes.size();
-            episodes.addAll(moreEpisodes);
-            Log.d(TAG, "Adding " + moreEpisodes.size() + " episodes starting at position " + startPosition);
-            notifyItemRangeInserted(startPosition, moreEpisodes.size());
+            episodes.addAll(newEpisodes);
+            notifyItemRangeInserted(startPosition, newEpisodes.size());
         }
     }
 
-    public void loadImageForPosition(int position) {
-        notifyItemChanged(position);
+    public void clear() {
+        int size = episodes.size();
+        episodes.clear();
+        notifyItemRangeRemoved(0, size);
     }
 
     public static class EpisodeViewHolder extends RecyclerView.ViewHolder {
         TextView episodeTitle;
         TextView episodeDescription;
         ImageView episodeThumbnail;
+        private RequestBuilder<Drawable> currentRequest;
 
         EpisodeViewHolder(View itemView) {
             super(itemView);
@@ -118,37 +110,38 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         void bind(Episode episode) {
             if (episode != null) {
-                episodeTitle.setText(String.format("Episodio %d: %s", episode.getEpisodeNumber(), episode.getName()));
-                episodeDescription.setText(episode.getOverview());
+                if (currentRequest != null) {
+                    Glide.with(itemView.getContext()).clear(episodeThumbnail);
+                }
+
+                episodeTitle.setText(String.format("Episodio %d: %s",
+                        episode.getEpisodeNumber(),
+                        episode.getName()));
+
+                String description = episode.getOverview();
+                if (description != null && !description.isEmpty()) {
+                    episodeDescription.setText(description);
+                } else {
+                    episodeDescription.setText("Sin descripción disponible");
+                }
             }
         }
 
         void loadImage(String stillPath) {
             if (stillPath != null && !stillPath.isEmpty()) {
                 String fullUrl = IMAGE_BASE_URL + stillPath;
-                Log.d(TAG, "Loading image from: " + fullUrl);
 
+                // Configurar Glide para cargar la imagen de manera más eficiente
                 Glide.with(itemView.getContext())
                         .load(fullUrl)
+                        .override(300, 200) // Limitar el tamaño de la imagen
+                        .thumbnail(0.1f)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .placeholder(R.drawable.ic_download_for_offline)
                         .error(R.drawable.ic_launcher_background)
-                        .listener(new RequestListener<android.graphics.drawable.Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
-                                Log.e(TAG, "Error loading image: " + (e != null ? e.getMessage() : "unknown error"));
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, Target<android.graphics.drawable.Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                Log.d(TAG, "Image loaded successfully");
-                                return false;
-                            }
-                        })
+                        .dontAnimate() // Evitar animaciones para mejor rendimiento
                         .into(episodeThumbnail);
             } else {
-                Log.w(TAG, "Still path is null or empty");
                 episodeThumbnail.setImageResource(R.drawable.ic_launcher_background);
             }
         }
