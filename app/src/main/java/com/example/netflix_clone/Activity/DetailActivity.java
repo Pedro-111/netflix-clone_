@@ -492,7 +492,7 @@ public class DetailActivity extends AppCompatActivity {
                 Glide.with(this)
                         .load(imagePath)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .placeholder(R.drawable.ic_launcher_background)
+                        .placeholder(R.drawable.ic_download_for_offline)
                         .error(R.drawable.ic_launcher_background)
                         .into(imageView);
             } else {
