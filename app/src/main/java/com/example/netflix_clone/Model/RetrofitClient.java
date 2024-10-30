@@ -3,6 +3,7 @@ package com.example.netflix_clone.Model;
 import android.content.Context;
 import com.example.netflix_clone.Interceptor.TokenInterceptor;
 import com.example.netflix_clone.Service.AuthServiceApi;
+import com.example.netflix_clone.Service.MeGustaService;
 import com.example.netflix_clone.Service.MiListaServiceApi;
 import com.example.netflix_clone.Service.PerfilServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
@@ -20,6 +21,7 @@ public class RetrofitClient {
     private static Retrofit retrofitMiLista = null;
     private static Retrofit retrofitMovie = null;
     private static Retrofit retrofitTrailer=null;
+    private static Retrofit retrofitMeGusta=null;
 
     // Cliente Retrofit con interceptor para AuthServiceApi
     public static Retrofit getAuthClient(String baseUrl, Context context) {
@@ -106,6 +108,24 @@ public class RetrofitClient {
         return retrofitTrailer;
     }
 
+    public static Retrofit getMeGustaClient(String baseUrl, Context context) {
+        if (retrofitMeGusta == null) {
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+            AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
+
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
+                    .build();
+
+            retrofitMeGusta = new Retrofit.Builder()
+                    .baseUrl(baseUrl)
+                    .client(okHttpClient)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofitMeGusta;
+    }
+
     // Servicio temporal de API de autenticación (sin interceptor)
     private static AuthServiceApi createTempAuthApiService(String baseUrl) {
         Retrofit tempRetrofit = new Retrofit.Builder()
@@ -118,6 +138,10 @@ public class RetrofitClient {
     // Método para obtener el servicio AuthServiceApi
     public static AuthServiceApi getAuthServiceApi(Context context) {
         return getAuthClient("https://apilogin.somee.com", context).create(AuthServiceApi.class);
+    }
+    // Método para obtener el servicio MeGustaServiceApi
+    public static MeGustaService getMeGustaServiceApi(Context context) {
+        return getMeGustaClient("https://apilogin.somee.com", context).create(MeGustaService.class);
     }
 
     // Método para obtener el servicio PerfilServiceApi

@@ -33,6 +33,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.netflix_clone.Adapter.EpisodeAdapter;
 import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.Descarga;
+import com.example.netflix_clone.Model.Request.MeGustaDTO;
 import com.example.netflix_clone.Model.Request.MiListaRequest;
 import com.example.netflix_clone.Model.Response.MiListaResponse;
 import com.example.netflix_clone.Model.Response.TrailerResponse;
@@ -42,6 +43,7 @@ import com.example.netflix_clone.Model.VideoDownloader;
 import com.example.netflix_clone.Model.VideoItem;
 import com.example.netflix_clone.Model.VideoStorageManager;
 import com.example.netflix_clone.R;
+import com.example.netflix_clone.Service.MeGustaService;
 import com.example.netflix_clone.Service.MiListaServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 import com.example.netflix_clone.Model.Content;
@@ -97,6 +99,11 @@ public class DetailActivity extends AppCompatActivity {
     private int currentPage = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    // Variables para MeGusta
+
+    private ImageButton rateButton;
+    private MeGustaService meGustaService;
+    private boolean isLiked = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +112,7 @@ public class DetailActivity extends AppCompatActivity {
         initializeViews();
         initializeServices();
 
+
         content = (Content) getIntent().getSerializableExtra("content");
         if (content == null) {
             Log.e(TAG, "No content received from intent");
@@ -112,6 +120,10 @@ public class DetailActivity extends AppCompatActivity {
             finish();
             return;
         }
+
+        checkIfLiked();
+
+
 
         setupContent();
         setupListeners();
@@ -137,7 +149,7 @@ public class DetailActivity extends AppCompatActivity {
         api = RetrofitClient.getMovieServiceApi();
         miListaServiceApi = RetrofitClient.getMiListaServiceApi(this);
         trailerServiceApi = RetrofitClient.getTrailerServiceApi();
-
+        meGustaService = RetrofitClient.getMeGustaServiceApi(this);
     }
 
     private void setupContent() {
@@ -160,7 +172,8 @@ public class DetailActivity extends AppCompatActivity {
         findViewById(R.id.search_button).setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         findViewById(R.id.arrow_back).setOnClickListener(v -> finish());
         findViewById(R.id.watch_button).setOnClickListener(v -> Toast.makeText(this, "Reproduciendo " + content.getTitle(), Toast.LENGTH_SHORT).show());
-
+        rateButton = findViewById(R.id.rate_button);
+        rateButton.setOnClickListener(v -> handleMeGusta());
         buttonMiLista.setOnClickListener(v -> {
             if (isInMyList && idElemento != -1) {
                 eliminarDeMiLista(idElemento);
@@ -173,6 +186,91 @@ public class DetailActivity extends AppCompatActivity {
         downloadButtonDetail.setOnClickListener(v->irADescargas());
 
         download_video.setOnClickListener(v -> downloadVideo());
+    }
+    private void checkIfLiked() {
+        if (content == null || idPerfilActual == -1) return;
+
+        meGustaService.existeMeGusta(idPerfilActual, String.valueOf(content.getId()))
+                .enqueue(new Callback<Boolean>() {
+                    @Override
+                    public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            isLiked = response.body();
+                            updateLikeButton();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Boolean> call, Throwable t) {
+                        Log.e(TAG, "Error checking like status", t);
+                    }
+                });
+    }
+
+    private void handleMeGusta() {
+        if (content == null || idPerfilActual == -1) {
+            Toast.makeText(this, "Error: No se puede procesar la acción", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (isLiked) {
+            eliminarMeGusta();
+        } else {
+            agregarMeGusta();
+        }
+    }
+    private void agregarMeGusta() {
+        MeGustaDTO meGustaDto = new MeGustaDTO(String.valueOf(content.getId()));
+
+        meGustaService.agregarMeGusta(idPerfilActual, meGustaDto)
+                .enqueue(new Callback<MeGustaDTO>() {
+                    @Override
+                    public void onResponse(Call<MeGustaDTO> call, Response<MeGustaDTO> response) {
+                        if (response.isSuccessful()) {
+                            isLiked = true;
+                            updateLikeButton();
+                            Toast.makeText(DetailActivity.this, "¡Me gusta agregado!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(DetailActivity.this, "Error al agregar me gusta", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MeGustaDTO> call, Throwable t) {
+                        Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void eliminarMeGusta() {
+        meGustaService.eliminarMeGusta(idPerfilActual, String.valueOf(content.getId()))
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            isLiked = false;
+                            updateLikeButton();
+                            Toast.makeText(DetailActivity.this, "Me gusta eliminado", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(DetailActivity.this, "Error al eliminar me gusta", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        Toast.makeText(DetailActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void updateLikeButton() {
+        runOnUiThread(() -> {
+            if (isLiked) {
+                rateButton.setImageResource(R.drawable.ic_liked);
+            } else {
+                rateButton.setImageResource(R.drawable.ic_like);
+            }
+        });
     }
     private void irADescargas(){
         Intent intent = new Intent(DetailActivity.this,DownloadedVideosActivity.class);

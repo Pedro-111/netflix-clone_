@@ -17,7 +17,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-
             <!-- AppBarLayout para contener el Toolbar -->
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
@@ -200,6 +199,23 @@
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:padding="16dp" />
+            <!-- Nueva sección de Series y películas que te gustaron -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Series y películas que te gustaron"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="16dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewLikedShows"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:clipToPadding="false"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
