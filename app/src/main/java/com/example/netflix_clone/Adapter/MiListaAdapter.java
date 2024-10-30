@@ -66,7 +66,7 @@ public class MiListaAdapter extends RecyclerView.Adapter<MiListaAdapter.ViewHold
         public void bind(Content item) {
             tituloRecomendado.setText(item.getTitle());
 
-            String imagePath = "https://image.tmdb.org/t/p/w500" + item.getPoster_path();
+            String imagePath = item.getPoster_path();
             Glide.with(context)
                     .load(imagePath)
                     .placeholder(R.drawable.ic_launcher_background)

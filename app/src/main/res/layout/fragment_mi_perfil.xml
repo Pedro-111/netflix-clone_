@@ -216,6 +216,45 @@
                 android:clipToPadding="false"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"/>
+            <ProgressBar
+                android:id="@+id/progressBar_mi_perfil"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/empty_state_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/ic_menu"
+                    android:alpha="0.5"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No tienes contenido en tu lista"
+                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:layout_marginTop="16dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Agrega series y películas a tu lista para verlas aquí"
+                    android:textSize="14sp"
+                    android:textAlignment="center"
+                    android:layout_marginTop="8dp"
+                    android:alpha="0.7"/>
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

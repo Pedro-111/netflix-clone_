@@ -2,6 +2,8 @@ package com.example.netflix_clone.Service;
 
 import com.example.netflix_clone.Model.Request.MeGustaDTO;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -26,5 +28,10 @@ public interface MeGustaService {
     Call<Void> eliminarMeGusta(
             @Path("perfilId") int perfilId,
             @Path("tmdbId") String tmdbId
+    );
+
+    @GET("api/Perfil/{perfilId}/megusta")
+    Call<List<MeGustaDTO>> obtenerMeGustasPorPerfil(
+            @Path("perfilId") int perfilId
     );
 }

@@ -1,7 +1,5 @@
 package com.example.netflix_clone.Activity;
 
-import static java.security.AccessController.getContext;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -22,10 +20,8 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -40,7 +36,6 @@ import com.example.netflix_clone.Model.Response.TrailerResponse;
 import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Model.VideoData;
 import com.example.netflix_clone.Model.VideoDownloader;
-import com.example.netflix_clone.Model.VideoItem;
 import com.example.netflix_clone.Model.VideoStorageManager;
 import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.MeGustaService;
@@ -52,7 +47,6 @@ import com.example.netflix_clone.Model.Season;
 import com.example.netflix_clone.Model.SeasonDetails;
 import com.example.netflix_clone.Model.TVShowDetails;
 import com.example.netflix_clone.Service.TrailerServiceApi;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +56,6 @@ import java.util.regex.Pattern;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -93,14 +86,12 @@ public class DetailActivity extends AppCompatActivity {
     private String nombreSeriePelicula;
     private ImageView downloadButtonDetail;
     private List<Episode> allEpisodes; // Store all episodes
-    private List<Episode> displayedEpisodes; // Store currently displayed episodes
     private static final int PAGE_SIZE = 5;
     private boolean isLoading = false;
     private int currentPage = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     // Variables para MeGusta
-
     private ImageButton rateButton;
     private MeGustaService meGustaService;
     private boolean isLiked = false;
@@ -112,7 +103,6 @@ public class DetailActivity extends AppCompatActivity {
         initializeViews();
         initializeServices();
 
-
         content = (Content) getIntent().getSerializableExtra("content");
         if (content == null) {
             Log.e(TAG, "No content received from intent");
@@ -120,11 +110,7 @@ public class DetailActivity extends AppCompatActivity {
             finish();
             return;
         }
-
         checkIfLiked();
-
-
-
         setupContent();
         setupListeners();
         setupRecyclerView();
@@ -220,7 +206,7 @@ public class DetailActivity extends AppCompatActivity {
         }
     }
     private void agregarMeGusta() {
-        MeGustaDTO meGustaDto = new MeGustaDTO(String.valueOf(content.getId()));
+        MeGustaDTO meGustaDto = new MeGustaDTO(String.valueOf(content.getId()),identificarPeliculaSerie());
 
         meGustaService.agregarMeGusta(idPerfilActual, meGustaDto)
                 .enqueue(new Callback<MeGustaDTO>() {
@@ -229,6 +215,8 @@ public class DetailActivity extends AppCompatActivity {
                         if (response.isSuccessful()) {
                             isLiked = true;
                             updateLikeButton();
+                            Log.i(TAG,"tmdbId: "+meGustaDto.getTmdbId());
+                            Log.i(TAG,"Tipo: "+meGustaDto.getTipo());
                             Toast.makeText(DetailActivity.this, "¡Me gusta agregado!", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(DetailActivity.this, "Error al agregar me gusta", Toast.LENGTH_SHORT).show();
@@ -333,28 +321,7 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
-    List<Episode> episodes;
-    private void setEpisodios(List<Episode> episodios){
-        this.episodes = episodios;
-    }
 
-    private void obtenerPrimerosEpisodios() {
-        if (allEpisodes == null) return;
-
-        displayedEpisodes.clear();
-        int initialLoad = Math.min(PAGE_SIZE, allEpisodes.size());
-
-        List<Episode> initialEpisodes = new ArrayList<>(
-                allEpisodes.subList(0, initialLoad)
-        );
-
-        displayedEpisodes.addAll(initialEpisodes);
-        episodeAdapter.addEpisodes(displayedEpisodes);
-    }
-
-    private int numeroEpisodios() {
-        return allEpisodes != null ? allEpisodes.size() : 0;
-    }
     private void fetchEpisodes(int seasonNumber) {
         api.getSeasonDetails(seriesId, seasonNumber, API_KEY, "es-ES").enqueue(new Callback<SeasonDetails>() {
             @Override
@@ -384,17 +351,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         });
     }
-//    private void loadVisibleEpisodeImages() {
-//        LinearLayoutManager layoutManager = (LinearLayoutManager) episodesRecyclerView.getLayoutManager();
-//        if (layoutManager != null) {
-//            int firstVisible = layoutManager.findFirstVisibleItemPosition();
-//            int lastVisible = layoutManager.findLastVisibleItemPosition();
-//
-//            for (int i = firstVisible; i <= lastVisible; i++) {
-//                episodeAdapter.loadImageForPosition(i);
-//            }
-//        }
-//    }
+
     private void downloadVideo() {
         if (videoUrl == null || videoUrl.isEmpty()) {
             Toast.makeText(this, "No hay video disponible para descargar", Toast.LENGTH_SHORT).show();
@@ -683,10 +640,6 @@ public class DetailActivity extends AppCompatActivity {
         } else {
             buttonMiLista.setImageResource(R.drawable.ic_add);
         }
-    }
-
-    private boolean canRemoveFromList() {
-        return isInMyList && idElemento != -1;
     }
     private int obtenerPerfilActual(){
         sharedPreferences = getSharedPreferences("MyApp",MODE_PRIVATE);
