@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -57,12 +59,14 @@ public class LikedShowsAdapter extends RecyclerView.Adapter<LikedShowsAdapter.Vi
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageShowPoster;
+        TextView textViewCompartir;
         ImageButton buttonShare;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             imageShowPoster = itemView.findViewById(R.id.imageShowPoster);
             buttonShare = itemView.findViewById(R.id.buttonShare_me_gusta);
+            textViewCompartir = itemView.findViewById(R.id.textViewCompartir);
         }
         void bind(final Content content, final OnItemClickListener listener) {
             Glide.with(itemView.getContext()).load(content.getPoster_path())
@@ -74,8 +78,15 @@ public class LikedShowsAdapter extends RecyclerView.Adapter<LikedShowsAdapter.Vi
             buttonShare.setVisibility(View.VISIBLE);
             buttonShare.setOnClickListener(v -> {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/uri-list"); // Cambiar el tipo a URL
-                shareIntent.putExtra(Intent.EXTRA_TEXT, "¡Mira esta imagen! " + content.getPoster_path());
+                shareIntent.setType("text/uri-list");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, content.getPoster_path());
+                itemView.getContext().startActivity(Intent.createChooser(shareIntent, "Compartir usando"));
+            });
+
+            textViewCompartir.setOnClickListener(v -> {
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/uri-list");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, content.getPoster_path());
                 itemView.getContext().startActivity(Intent.createChooser(shareIntent, "Compartir usando"));
             });
 
