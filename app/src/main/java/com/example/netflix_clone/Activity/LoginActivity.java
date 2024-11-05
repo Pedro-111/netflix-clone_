@@ -239,23 +239,22 @@ public class LoginActivity extends AppCompatActivity {
 
     private void guardarPerfilesEnBaseDeDatos(List<Perfiles> perfiles) {
         new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+            try {
+                AppDatabase db = AppDatabase.getInstance(getApplicationContext());
 
-            for (Perfiles perfil : perfiles) {
-                // Verificar si el perfil ya existe en la base de datos
-                Perfiles perfilExistente = db.perfilDao().obtenerPerfilPorId(perfil.getIdPerfil());
+                // Primero, eliminar todos los perfiles existentes
+                db.perfilDao().eliminarTodosLosPerfiles();
 
-                if (perfilExistente == null) {
-                    // Si no existe, insertar el perfil
+                // Luego, insertar los nuevos perfiles
+                for (Perfiles perfil : perfiles) {
                     db.perfilDao().insertarPerfil(perfil);
                     Log.d(TAG, "Perfil insertado: ID " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
-                } else {
-                    // Si ya existe, actualizar el perfil o hacer algún manejo (opcional)
-                    db.perfilDao().actualizarPerfil(perfil);
-                    Log.d(TAG, "Perfil actualizado: ID " + perfil.getIdPerfil() + ", Nombre: " + perfil.getNombre());
                 }
+
+                Log.d(TAG, "Perfiles actualizados exitosamente en la base de datos");
+            } catch (Exception e) {
+                Log.e(TAG, "Error al guardar perfiles: " + e.getMessage());
             }
-            Log.d(TAG, "Perfiles guardados/actualizados en la base de datos");
         }).start();
     }
 

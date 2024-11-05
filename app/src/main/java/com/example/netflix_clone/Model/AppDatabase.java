@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 import com.example.netflix_clone.Model.Dao.DescargaDao;
 import com.example.netflix_clone.Model.Dao.PerfilDao;
 
-@Database(entities = {Descarga.class, Perfiles.class}, version = 2)
+@Database(entities = {Descarga.class, Perfiles.class}, version = 3)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract DescargaDao descargaDao();
     public abstract PerfilDao perfilDao(); // Agregar el DAO de perfil

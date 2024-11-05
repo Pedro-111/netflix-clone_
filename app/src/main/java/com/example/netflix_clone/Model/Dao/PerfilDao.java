@@ -23,4 +23,7 @@ public interface PerfilDao {
 
     @Query("SELECT * FROM perfiles WHERE idPerfil = :id")
     Perfiles obtenerPerfilPorId(int id);
+
+    @Query("DELETE FROM perfiles")
+    void eliminarTodosLosPerfiles();
 }

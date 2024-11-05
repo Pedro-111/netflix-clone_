@@ -77,30 +77,21 @@ public class PerfilInicioActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<Perfiles>> call, Throwable t) {
                 // Intentar cargar perfiles de la base de datos local
-                //cargarPerfilesDesdeBaseDeDatos();
+                cargarPerfilesDesdeBaseDeDatos();
             }
         });
     }
 
     private void cargarPerfilesDesdeBaseDeDatos() {
-        // Crear un Executor para realizar operaciones en segundo plano
         Executor executor = Executors.newSingleThreadExecutor();
-
-        // Ejecutar la operación en segundo plano
         executor.execute(() -> {
-            // Obtener la instancia de la base de datos
             AppDatabase database = AppDatabase.getInstance(this);
-
-            // Realizar la consulta de perfiles en un hilo de fondo
             List<Perfiles> perfiles = database.perfilDao().obtenerPerfiles();
 
-            // Volver al hilo principal para actualizar la UI
             runOnUiThread(() -> {
                 if (perfiles != null && !perfiles.isEmpty()) {
-                    // Si hay perfiles, actualizar el RecyclerView
                     setupRecyclerView(perfiles);
                 } else {
-                    // Mostrar mensaje si no hay perfiles en la base de datos
                     Toast.makeText(this, "No se encontraron perfiles, intenta conectarte a Internet.", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -116,17 +107,22 @@ public class PerfilInicioActivity extends AppCompatActivity {
                     "Reintentando cargar perfiles... Intento " + currentRetry,
                     Toast.LENGTH_SHORT).show();
 
-            // Esperar un momento antes de reintentar
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    cargarPerfiles();
-                }
-            }, 1000 * currentRetry); // Incrementar el tiempo de espera con cada reintento
+            // Usar exponential backoff para los reintentos
+            long delayMillis = (long) Math.pow(2, currentRetry - 1) * 1000;
+
+            new Handler().postDelayed(() -> {
+                cargarPerfiles();
+            }, delayMillis);
         } else {
             Toast.makeText(PerfilInicioActivity.this,
-                    "No se pudieron cargar los perfiles después de " + MAX_RETRIES + " intentos",
+                    "Usando datos guardados localmente",
                     Toast.LENGTH_LONG).show();
+
+            // Guardar timestamp del último intento fallido
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putLong("last_failed_server_attempt", System.currentTimeMillis());
+            editor.apply();
+
             cargarPerfilesDesdeBaseDeDatos();
         }
     }
