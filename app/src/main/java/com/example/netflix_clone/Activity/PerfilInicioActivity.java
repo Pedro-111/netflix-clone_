@@ -77,7 +77,7 @@ public class PerfilInicioActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<Perfiles>> call, Throwable t) {
                 // Intentar cargar perfiles de la base de datos local
-                cargarPerfilesDesdeBaseDeDatos();
+                //cargarPerfilesDesdeBaseDeDatos();
             }
         });
     }
@@ -127,6 +127,7 @@ public class PerfilInicioActivity extends AppCompatActivity {
             Toast.makeText(PerfilInicioActivity.this,
                     "No se pudieron cargar los perfiles después de " + MAX_RETRIES + " intentos",
                     Toast.LENGTH_LONG).show();
+            cargarPerfilesDesdeBaseDeDatos();
         }
     }
 

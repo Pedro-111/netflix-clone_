@@ -152,7 +152,7 @@ public class EpisodeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         LoadingViewHolder(View itemView) {
             super(itemView);
-            progressBar = itemView.findViewById(R.id.progress_bar);
+            progressBar = itemView.findViewById(R.id.progress_bar_loading);
         }
     }
 }

@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:queryHint="Buscar juegos, series, películas..."
         android:iconifiedByDefault="false"
+        style="@style/SearchViewStyle"
         android:background="@color/white"/>
 
     <TextView
