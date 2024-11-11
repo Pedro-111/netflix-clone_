@@ -135,8 +135,6 @@ public class WelcomeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
-
     private void updateTextsForPage(int position) {
         switch (position) {
             case 0:

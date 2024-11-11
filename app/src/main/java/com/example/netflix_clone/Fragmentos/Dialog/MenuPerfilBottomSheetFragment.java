@@ -15,6 +15,7 @@ public class MenuPerfilBottomSheetFragment extends BottomSheetDialogFragment {
 
     public interface MenuPerfilListener {
         void onCerrarSesionClicked();
+        void onAdministrarPerfiles();
     }
 
     private MenuPerfilListener listener;
@@ -34,7 +35,15 @@ public class MenuPerfilBottomSheetFragment extends BottomSheetDialogFragment {
             }
         });
 
-        // Aquí puedes agregar más listeners para las otras opciones del menú
+       view.findViewById(R.id.administrarPerfiles).setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               if(listener!=null){
+                   listener.onAdministrarPerfiles();
+               }
+               dismiss();
+           }
+       });
 
         return view;
     }

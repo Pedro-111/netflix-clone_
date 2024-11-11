@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.netflix_clone.Activity.AdministrarPerfilesActivity;
 import com.example.netflix_clone.Activity.DetailActivity;
 import com.example.netflix_clone.Activity.WelcomeActivity;
 import com.example.netflix_clone.Adapter.ContentAdapter;
@@ -38,6 +39,7 @@ import com.example.netflix_clone.Model.RetrofitClient;
 import com.example.netflix_clone.Model.TVShowDetails;
 import com.example.netflix_clone.R;
 import com.example.netflix_clone.Service.MeGustaService;
+import com.example.netflix_clone.Service.PerfilServiceApi;
 import com.example.netflix_clone.Service.TheMovieDBApi;
 
 import java.util.ArrayList;
@@ -61,9 +63,13 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     private final String API_KEY = "1bdc0004cdd2b29842a351fba6d0abcb";
     private View emptyStateView;
     private ProgressBar progressBar;
+
+    private PerfilServiceApi perfilServiceApi;
+    private int currentRetry = 0;
     @Override
     public void onResume() {
         super.onResume();
+        cargarPerfiles();
         // Actualizar la lista cada vez que el fragmento vuelve a estar visible
         mostrarSeriesPeliculasFavoritas();
     }
@@ -89,13 +95,14 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         }
 
         setupClickListeners(view);
-
+        cargarPerfiles();
         return view;
     }
     private void setupServices() {
         perfilDatabase = AppDatabase.getInstance(getContext());
         meGustaService = RetrofitClient.getMeGustaServiceApi(requireContext());
         theMovieDBApi = RetrofitClient.getMovieServiceApi();
+        perfilServiceApi = RetrofitClient.getPerfilServiceApi(requireContext());
     }
 
     private void setupClickListeners(View view) {
@@ -112,6 +119,60 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         recyclerViewLikedShows.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         recyclerViewLikedShows.setAdapter(likedShowsAdapter);
+    }
+    private void cargarPerfiles() {
+        Call<List<Perfiles>> call = perfilServiceApi.obtenerPerfiles();
+
+        call.enqueue(new Callback<List<Perfiles>>() {
+            @Override
+            public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Perfiles> perfiles = response.body();
+                    actualizarBaseDeDatosLocal(perfiles);
+                    cargarDatosPerfil(obtenerPerfilSeleccionado());
+                    currentRetry = 0;
+                } else {
+                    handleError("Error en la respuesta: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Perfiles>> call, Throwable t) {
+                cargarPerfilesDesdeBaseDeDatos();
+            }
+        });
+    }
+    private void actualizarBaseDeDatosLocal(List<Perfiles> perfiles) {
+        new Thread(() -> {
+            try {
+                // Primero eliminamos todos los perfiles existentes
+                perfilDatabase.perfilDao().eliminarTodosLosPerfiles();
+                // Luego insertamos los nuevos perfiles
+                perfilDatabase.perfilDao().insertAll(perfiles);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+    private void cargarPerfilesDesdeBaseDeDatos() {
+        new Thread(() -> {
+            List<Perfiles> perfilesLocales = perfilDatabase.perfilDao().obtenerPerfiles();
+            requireActivity().runOnUiThread(() -> {
+                if (perfilesLocales != null && !perfilesLocales.isEmpty()) {
+                    // Usar los perfiles de la base de datos local
+                    cargarDatosPerfil(obtenerPerfilSeleccionado());
+                } else {
+                    handleError("No se pudieron cargar los perfiles");
+                }
+            });
+        }).start();
+    }
+    private void handleError(String message) {
+        if (getActivity() == null) return;
+
+        requireActivity().runOnUiThread(() -> {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void mostrarSeriesPeliculasFavoritas() {
@@ -250,6 +311,15 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     public void onCerrarSesionClicked() {
         cerrarSesion();
     }
+    @Override
+    public void onAdministrarPerfiles() {
+        administrarPerfiles();
+    }
+    private void administrarPerfiles(){
+        Intent intent = new Intent(getContext(), AdministrarPerfilesActivity.class);
+        startActivity(intent);
+
+    }
 
     private void cerrarSesion() {
         SharedPreferences prefs = requireContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
@@ -273,30 +343,49 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     }
 
     public void cargarDatosPerfil(final int idPerfil) {
-        new Thread(new Runnable() {
+        Call<Perfiles> call = perfilServiceApi.obtenerPerfil(idPerfil);
+        call.enqueue(new Callback<Perfiles>() {
             @Override
-            public void run() {
-                final Perfiles perfil = perfilDatabase.perfilDao().obtenerPerfilPorId(idPerfil);
-                if (perfil != null) {
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            textNombre.setText(perfil.getNombre());
-                            Glide.with(requireActivity()).load(perfil.getFotoPerfilUrl()).into(imagenPerfil);
-                        }
-                    });
+            public void onResponse(Call<Perfiles> call, Response<Perfiles> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Perfiles perfil = response.body();
+                    actualizarUI(perfil);
+                    // Actualizar el perfil en la base de datos local
+                    new Thread(() -> perfilDatabase.perfilDao().insertarPerfil(perfil)).start();
                 } else {
-                    requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "Error al cargar el perfil", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    // Si falla la API, intentamos cargar desde la base de datos local
+                    cargarPerfilDesdeBaseDeDatos(idPerfil);
                 }
             }
+
+            @Override
+            public void onFailure(Call<Perfiles> call, Throwable t) {
+                cargarPerfilDesdeBaseDeDatos(idPerfil);
+            }
+        });
+    }
+    private void cargarPerfilDesdeBaseDeDatos(int idPerfil) {
+        new Thread(() -> {
+            final Perfiles perfil = perfilDatabase.perfilDao().obtenerPerfilPorId(idPerfil);
+            if (getActivity() == null) return;
+
+            requireActivity().runOnUiThread(() -> {
+                if (perfil != null) {
+                    actualizarUI(perfil);
+                } else {
+                    Toast.makeText(getContext(), "Error al cargar el perfil", Toast.LENGTH_SHORT).show();
+                }
+            });
         }).start();
     }
+    private void actualizarUI(Perfiles perfil) {
+        if (getActivity() == null) return;
 
+        requireActivity().runOnUiThread(() -> {
+            textNombre.setText(perfil.getNombre());
+            Glide.with(requireActivity()).load(perfil.getFotoPerfilUrl()).into(imagenPerfil);
+        });
+    }
     private int obtenerPerfilSeleccionado() {
         SharedPreferences prefs = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
         return prefs.getInt("idPerfil", -1);

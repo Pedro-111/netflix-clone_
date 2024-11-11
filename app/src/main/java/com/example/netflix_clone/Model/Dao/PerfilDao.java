@@ -26,4 +26,7 @@ public interface PerfilDao {
 
     @Query("DELETE FROM perfiles")
     void eliminarTodosLosPerfiles();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAll(List<Perfiles> perfiles);
 }
