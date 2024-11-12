@@ -25,7 +25,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.Body;
 
 
 public class AdministrarPerfilesActivity extends AppCompatActivity {
@@ -68,9 +67,7 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
 
     }
     private int obtenerPerfilActual(){
-        SharedPreferences sharedPreferences = getSharedPreferences("MyApp",MODE_PRIVATE);
-
-        return sharedPreferences.getInt("idPerfil",-1);
+        return getIntent().getIntExtra("idPerfil", -1); // -1 es el valor predeterminado si "idPerfil" no existe
     }
     private void cargarPerfil(){
         idPerfil = obtenerPerfilActual();
@@ -85,8 +82,10 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
                 if(response.isSuccessful()&& response.body()!=null){
                     perfiles = response.body();
                     nombreOriginal = perfiles.getNombre();
-                    Glide.with(AdministrarPerfilesActivity.this).load(perfiles.getFotoPerfilUrl()).into(imageViewFotoPerfil);
-                    textInputNombrePerfil.setText(nombreOriginal);
+                    if (!AdministrarPerfilesActivity.this.isFinishing() && !AdministrarPerfilesActivity.this.isDestroyed()) {
+                        Glide.with(AdministrarPerfilesActivity.this).load(perfiles.getFotoPerfilUrl()).into(imageViewFotoPerfil);
+                        textInputNombrePerfil.setText(nombreOriginal);
+                    }
                 }
             }
 

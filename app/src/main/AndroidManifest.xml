@@ -37,6 +37,7 @@
         <activity android:name=".Activity.DetailActivity" />
         <activity android:name=".Activity.SearchActivity" />
         <activity android:name=".Activity.AdministrarPerfilesActivity"/>
+        <activity android:name=".Activity.VistaAdministrarPerfilesActivity"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

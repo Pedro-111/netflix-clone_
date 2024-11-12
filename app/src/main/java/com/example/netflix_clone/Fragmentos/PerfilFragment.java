@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Activity.AdministrarPerfilesActivity;
 import com.example.netflix_clone.Activity.DetailActivity;
+import com.example.netflix_clone.Activity.VistaAdministrarPerfilesActivity;
 import com.example.netflix_clone.Activity.WelcomeActivity;
 import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.Adapter.LikedShowsAdapter;
@@ -316,9 +317,8 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         administrarPerfiles();
     }
     private void administrarPerfiles(){
-        Intent intent = new Intent(getContext(), AdministrarPerfilesActivity.class);
+        Intent intent = new Intent(getContext(), VistaAdministrarPerfilesActivity.class);
         startActivity(intent);
-
     }
 
     private void cerrarSesion() {
@@ -387,7 +387,14 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         });
     }
     private int obtenerPerfilSeleccionado() {
-        SharedPreferences prefs = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
-        return prefs.getInt("idPerfil", -1);
+        Context context = getContext();
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+            return prefs.getInt("idPerfil", -1); // Devuelve -1 si no encuentra "idPerfil"
+        } else {
+            Log.e("Error", "Contexto es nulo. No se pudo obtener SharedPreferences.");
+            return -1;
+        }
     }
+
 }
