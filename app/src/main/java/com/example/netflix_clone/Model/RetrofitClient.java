@@ -30,7 +30,7 @@ public class RetrofitClient {
             AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
 
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService,context))
                     .build();
 
             retrofitAuth = new Retrofit.Builder()
@@ -48,7 +48,7 @@ public class RetrofitClient {
             AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
 
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService,context))
                     .build();
 
             retrofitPerfil = new Retrofit.Builder()
@@ -66,7 +66,7 @@ public class RetrofitClient {
             AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
 
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService,context))
                     .build();
 
             retrofitMiLista = new Retrofit.Builder()
@@ -114,7 +114,7 @@ public class RetrofitClient {
             AuthServiceApi tempAuthService = createTempAuthApiService(baseUrl);
 
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService))
+                    .addInterceptor(new TokenInterceptor(sharedPreferences, tempAuthService,context))
                     .build();
 
             retrofitMeGusta = new Retrofit.Builder()

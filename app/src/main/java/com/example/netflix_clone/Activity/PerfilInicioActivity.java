@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import com.example.netflix_clone.Adapter.PerfilAdapter;
+import com.example.netflix_clone.Interceptor.NetworkUtils;
 import com.example.netflix_clone.MainActivity;
 import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.GridSpacingItemDecoration;
@@ -59,27 +60,36 @@ public class PerfilInicioActivity extends AppCompatActivity {
     }
 
     private void cargarPerfiles() {
-        PerfilServiceApi service = RetrofitClient.getPerfilServiceApi(this);
-        Call<List<Perfiles>> call = service.obtenerPerfiles();
+        NetworkUtils.isConnectedAsync(PerfilInicioActivity.this,isConnected -> {
+            if(isConnected){
+                PerfilServiceApi service = RetrofitClient.getPerfilServiceApi(this);
+                Call<List<Perfiles>> call = service.obtenerPerfiles();
 
-        call.enqueue(new Callback<List<Perfiles>>() {
-            @Override
-            public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Perfiles> perfiles = response.body();
-                    setupRecyclerView(perfiles);
-                    currentRetry = 0; // Reiniciar el contador de reintentos si es exitoso
-                } else {
-                    handleError("Error en la respuesta: " + response.code());
+                call.enqueue(new Callback<List<Perfiles>>() {
+                    @Override
+                    public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<Perfiles> perfiles = response.body();
+                            setupRecyclerView(perfiles);
+                            currentRetry = 0; // Reiniciar el contador de reintentos si es exitoso
+                        } else {
+                            handleError("Error en la respuesta: " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Perfiles>> call, Throwable t) {
+                        // Intentar cargar perfiles de la base de datos local
+                        cargarPerfilesDesdeBaseDeDatos();
+                    }
+                });
+            }else{
+                if(!isDestroyed()&&!isFinishing()){
+                    cargarPerfilesDesdeBaseDeDatos();
                 }
             }
-
-            @Override
-            public void onFailure(Call<List<Perfiles>> call, Throwable t) {
-                // Intentar cargar perfiles de la base de datos local
-                cargarPerfilesDesdeBaseDeDatos();
-            }
         });
+
     }
 
     private void cargarPerfilesDesdeBaseDeDatos() {

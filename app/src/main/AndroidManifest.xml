@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
     <application
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
@@ -38,6 +40,7 @@
         <activity android:name=".Activity.SearchActivity" />
         <activity android:name=".Activity.AdministrarPerfilesActivity"/>
         <activity android:name=".Activity.VistaAdministrarPerfilesActivity"/>
+        <activity android:name=".Activity.SeleccionarIconoActivity"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

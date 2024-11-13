@@ -1,7 +1,6 @@
 package com.example.netflix_clone.Fragmentos;
 
 import static android.content.ContentValues.TAG;
-import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
 import android.content.Intent;
@@ -23,14 +22,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.netflix_clone.Activity.AdministrarPerfilesActivity;
 import com.example.netflix_clone.Activity.DetailActivity;
 import com.example.netflix_clone.Activity.VistaAdministrarPerfilesActivity;
 import com.example.netflix_clone.Activity.WelcomeActivity;
-import com.example.netflix_clone.Adapter.ContentAdapter;
 import com.example.netflix_clone.Adapter.LikedShowsAdapter;
 import com.example.netflix_clone.Fragmentos.Dialog.MenuPerfilBottomSheetFragment;
 import com.example.netflix_clone.Fragmentos.Dialog.PerfilesBottomSheetFragment;
+import com.example.netflix_clone.Interceptor.NetworkUtils;
 import com.example.netflix_clone.Model.AppDatabase;
 import com.example.netflix_clone.Model.Content;
 import com.example.netflix_clone.Model.Perfiles;
@@ -74,6 +72,7 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         // Actualizar la lista cada vez que el fragmento vuelve a estar visible
         mostrarSeriesPeliculasFavoritas();
     }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -122,26 +121,39 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         recyclerViewLikedShows.setAdapter(likedShowsAdapter);
     }
     private void cargarPerfiles() {
-        Call<List<Perfiles>> call = perfilServiceApi.obtenerPerfiles();
 
-        call.enqueue(new Callback<List<Perfiles>>() {
-            @Override
-            public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Perfiles> perfiles = response.body();
-                    actualizarBaseDeDatosLocal(perfiles);
-                    cargarDatosPerfil(obtenerPerfilSeleccionado());
-                    currentRetry = 0;
-                } else {
-                    handleError("Error en la respuesta: " + response.code());
+        NetworkUtils.isConnectedAsync(getContext(),isConnected -> {
+            if(isConnected){
+                Call<List<Perfiles>> call = perfilServiceApi.obtenerPerfiles();
+                call.enqueue(new Callback<List<Perfiles>>() {
+                    @Override
+                    public void onResponse(Call<List<Perfiles>> call, Response<List<Perfiles>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<Perfiles> perfiles = response.body();
+                            actualizarBaseDeDatosLocal(perfiles);
+                            cargarDatosPerfil(obtenerPerfilSeleccionado());
+                            currentRetry = 0;
+                        } else {
+                            handleError("Cargar Perfiles: Error en la respuesta: " + response.code());
+                            cargarPerfilesDesdeBaseDeDatos();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Perfiles>> call, Throwable t) {
+                        cargarPerfilesDesdeBaseDeDatos();
+                    }
+                });
+            }else{
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Sin conexión a Internet. Cargando datos locales...", Toast.LENGTH_SHORT).show();
+                    });
                 }
-            }
-
-            @Override
-            public void onFailure(Call<List<Perfiles>> call, Throwable t) {
                 cargarPerfilesDesdeBaseDeDatos();
             }
         });
+
     }
     private void actualizarBaseDeDatosLocal(List<Perfiles> perfiles) {
         new Thread(() -> {
@@ -158,14 +170,16 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     private void cargarPerfilesDesdeBaseDeDatos() {
         new Thread(() -> {
             List<Perfiles> perfilesLocales = perfilDatabase.perfilDao().obtenerPerfiles();
-            requireActivity().runOnUiThread(() -> {
-                if (perfilesLocales != null && !perfilesLocales.isEmpty()) {
-                    // Usar los perfiles de la base de datos local
-                    cargarDatosPerfil(obtenerPerfilSeleccionado());
-                } else {
-                    handleError("No se pudieron cargar los perfiles");
-                }
-            });
+            if (isAdded()) {  // Verificar si el fragmento está adjunto
+                requireActivity().runOnUiThread(() -> {
+                    if (perfilesLocales != null && !perfilesLocales.isEmpty()) {
+                        // Usar los perfiles de la base de datos local
+                        cargarDatosPerfil(obtenerPerfilSeleccionado());
+                    } else {
+                        handleError("No se pudieron cargar los perfiles");
+                    }
+                });
+            }
         }).start();
     }
     private void handleError(String message) {
@@ -177,33 +191,43 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     }
 
     private void mostrarSeriesPeliculasFavoritas() {
-        // Mostrar estado de carga si lo deseas
         showLoadingState();
 
-        Call<List<MeGustaDTO>> call = meGustaService.obtenerMeGustasPorPerfil(obtenerPerfilSeleccionado());
-        call.enqueue(new Callback<List<MeGustaDTO>>() {
-            @Override
-            public void onResponse(Call<List<MeGustaDTO>> call, Response<List<MeGustaDTO>> response) {
-                if (!isAdded()) return;
+        NetworkUtils.isConnectedAsync(requireContext(), isConnected -> {
+            if (isConnected) {
+                Call<List<MeGustaDTO>> call = meGustaService.obtenerMeGustasPorPerfil(obtenerPerfilSeleccionado());
+                call.enqueue(new Callback<List<MeGustaDTO>>() {
+                    @Override
+                    public void onResponse(Call<List<MeGustaDTO>> call, Response<List<MeGustaDTO>> response) {
+                        if (!isAdded()) return;
 
-                if (response.isSuccessful() && response.body() != null) {
-                    List<MeGustaDTO> meGustaDTOList = response.body();
-                    if (meGustaDTOList.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        processMiListaResponse(meGustaDTOList);
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<MeGustaDTO> meGustaDTOList = response.body();
+                            if (meGustaDTOList.isEmpty()) {
+                                showEmptyState();
+                            } else {
+                                processMiListaResponse(meGustaDTOList);
+                            }
+                        } else {
+                            showEmptyState();
+                            Log.e(TAG, "Series Favoritas, Error en la respuesta: " + response.code());
+                        }
                     }
-                } else {
-                    showEmptyState();
-                    Log.e(TAG, "Error en la respuesta: " + response.code());
-                }
-            }
 
-            @Override
-            public void onFailure(Call<List<MeGustaDTO>> call, Throwable t) {
-                if (!isAdded()) return;
-                showEmptyState();
-                Log.e(TAG, "Error de conexión", t);
+                    @Override
+                    public void onFailure(Call<List<MeGustaDTO>> call, Throwable t) {
+                        if (!isAdded()) return;
+                        showEmptyState();
+                        Log.e(TAG, "Error de conexión", t);
+                    }
+                });
+            } else {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Sin conexión a Internet. No se pueden cargar los favoritos.", Toast.LENGTH_SHORT).show();
+                        showEmptyState();
+                    });
+                }
             }
         });
     }
@@ -343,23 +367,46 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     }
 
     public void cargarDatosPerfil(final int idPerfil) {
-        Call<Perfiles> call = perfilServiceApi.obtenerPerfil(idPerfil);
-        call.enqueue(new Callback<Perfiles>() {
-            @Override
-            public void onResponse(Call<Perfiles> call, Response<Perfiles> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Perfiles perfil = response.body();
-                    actualizarUI(perfil);
-                    // Actualizar el perfil en la base de datos local
-                    new Thread(() -> perfilDatabase.perfilDao().insertarPerfil(perfil)).start();
-                } else {
-                    // Si falla la API, intentamos cargar desde la base de datos local
-                    cargarPerfilDesdeBaseDeDatos(idPerfil);
-                }
-            }
+        NetworkUtils.isConnectedAsync(requireContext(), isConnected -> {
+            if (isConnected) {
+                // Si hay conexión, intentamos cargar desde la API
+                Call<Perfiles> call = perfilServiceApi.obtenerPerfil(idPerfil);
+                call.enqueue(new Callback<Perfiles>() {
+                    @Override
+                    public void onResponse(Call<Perfiles> call, Response<Perfiles> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            Perfiles perfil = response.body();
+                            actualizarUI(perfil);
+                            // Actualizar el perfil en la base de datos local
+                            new Thread(() -> perfilDatabase.perfilDao().insertarPerfil(perfil)).start();
+                        } else {
+                            // Si falla la API, intentamos cargar desde la base de datos local
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    Toast.makeText(requireContext(), "Error al cargar el perfil. Usando datos locales.", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                            cargarPerfilDesdeBaseDeDatos(idPerfil);
+                        }
+                    }
 
-            @Override
-            public void onFailure(Call<Perfiles> call, Throwable t) {
+                    @Override
+                    public void onFailure(Call<Perfiles> call, Throwable t) {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                Toast.makeText(requireContext(), "Error de conexión. Usando datos locales.", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                        cargarPerfilDesdeBaseDeDatos(idPerfil);
+                    }
+                });
+            } else {
+                // Si no hay conexión, cargamos directamente desde la base de datos local
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Sin conexión a Internet. Cargando datos locales...", Toast.LENGTH_SHORT).show();
+                    });
+                }
                 cargarPerfilDesdeBaseDeDatos(idPerfil);
             }
         });
@@ -396,5 +443,4 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
             return -1;
         }
     }
-
 }

@@ -4,7 +4,8 @@ public class PerfilRequest {
     private String nombre;
     private String fotoPerfilUrl;
 
-    public PerfilRequest(){
+    public PerfilRequest(String fotoPerfilUrl){
+        this.fotoPerfilUrl = fotoPerfilUrl;
     }
     public PerfilRequest(String nombre,String fotoPerfilUrl){
         this.nombre = nombre;

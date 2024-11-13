@@ -3,6 +3,7 @@ package com.example.netflix_clone.Activity;
 import static android.content.ContentValues.TAG;
 import static android.content.Context.MODE_PRIVATE;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
@@ -13,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 
 import com.bumptech.glide.Glide;
 import com.example.netflix_clone.Model.Perfiles;
@@ -35,13 +37,15 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
     private String nombreOriginal;
     private int idPerfil;
     Perfiles perfiles;
+    private CardView cambiarIcono;
+    private String nuevoNombrePerfil;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_administrar_perfiles);
        inicializar();
 
-       cargarPerfil();
+
        volver();
 
         textInputNombrePerfil.addTextChangedListener(new TextWatcher() {
@@ -64,7 +68,21 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
             }
         });
 
+        cambiarIcono.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(AdministrarPerfilesActivity.this,SeleccionarIconoActivity.class);
+                intent.putExtra("idPerfil",idPerfil);
+                intent.putExtra("nombrePerfil",nuevoNombrePerfil);
+                startActivity(intent);
+            }
+        });
 
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+        cargarPerfil();
     }
     private int obtenerPerfilActual(){
         return getIntent().getIntExtra("idPerfil", -1); // -1 es el valor predeterminado si "idPerfil" no existe
@@ -96,7 +114,7 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
         });
     }
     private void verificarYCambiarNombre(){
-        String nuevoNombrePerfil = textInputNombrePerfil.getText().toString().trim();
+        nuevoNombrePerfil = textInputNombrePerfil.getText().toString().trim();
 
         if(!nuevoNombrePerfil.equals(nombreOriginal)){
             PerfilRequest perfilRequest = new PerfilRequest(nuevoNombrePerfil,perfiles.getFotoPerfilUrl());
@@ -121,7 +139,7 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
     }
     private void inicializar(){
         btnVolver = findViewById(R.id.backButton_administrar);
-
+        cambiarIcono = findViewById(R.id.editar_icono_perfil);
         perfilServiceApi = RetrofitClient.getPerfilServiceApi(AdministrarPerfilesActivity.this);
 
         imageViewFotoPerfil = findViewById(R.id.foto_administrar_perfil);

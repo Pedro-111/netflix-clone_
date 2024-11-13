@@ -234,7 +234,9 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
-        dialog.show();
+        if (!isFinishing() && !isDestroyed()) {
+            dialog.show();
+        }
     }
 
     private void guardarPerfilesEnBaseDeDatos(List<Perfiles> perfiles) {

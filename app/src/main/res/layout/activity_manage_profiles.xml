@@ -28,7 +28,7 @@
             android:text="Administrar perfiles"
             android:textColor="@color/white"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:layout_gravity="start" />
 
     </androidx.appcompat.widget.Toolbar>

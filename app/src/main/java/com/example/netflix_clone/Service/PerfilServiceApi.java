@@ -20,4 +20,5 @@ public interface PerfilServiceApi {
 
     @PUT("/api/Perfil/{id}")
     Call<Void> actualizarPerfil(@Path("id") int idPerfil,@Body PerfilRequest perfiles);
+
 }
