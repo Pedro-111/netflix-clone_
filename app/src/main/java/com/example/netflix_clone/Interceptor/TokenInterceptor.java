@@ -23,6 +23,11 @@ import retrofit2.Call;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+class ConnectionState {
+    volatile boolean hasInternet = false;
+    volatile String currentToken;
+}
+
 
 public class TokenInterceptor implements Interceptor {
     private static final String TAG = "TokenInterceptor";
@@ -42,81 +47,43 @@ public class TokenInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request originalRequest = chain.request();
         String token = sharedPreferences.getString("token", null);
-        String ShowRefreshToken = sharedPreferences.getString("refreshToken", null);
-        Log.i(TAG, "Token desde interceptor: " + token);
-        Log.i(TAG, "Refresh Token desde interceptor: " + ShowRefreshToken);
 
         if (token == null) {
             return chain.proceed(originalRequest);
         }
 
-        // Usamos un objeto contenedor para mantener el estado
-        class ConnectionState {
-            volatile boolean hasInternet = false;
-            volatile String currentToken;
-        }
-
+        // Estado compartido
         final ConnectionState state = new ConnectionState();
         state.currentToken = token;
 
-        // Primera verificación de conectividad
-        CountDownLatch latch = new CountDownLatch(1);
-        NetworkUtils.isConnectedAsync(context, isConnected -> {
-            state.hasInternet = isConnected;
-            latch.countDown();
-        });
+        // Verificar conexión solo si es necesario
+        if (needsTokenValidation()) {
+            verifyConnectivity(state);
 
-        try {
-            latch.await(3, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        Log.i(TAG, "Internet: " + state.hasInternet);
-
-        // Si no hay conexión, procedemos con el token actual
-        if (!state.hasInternet) {
-            Log.i(TAG, "Sin Internet");
-            return chain.proceed(originalRequest.newBuilder()
-                    .header("Authorization", "Bearer " + state.currentToken)
-                    .build());
-        }
-
-        // Validar el token antes de usarlo
-
-        Log.i(TAG,"Token es : "+ (isTokenValid(state.currentToken) ? "Valido":"Invalido"));
-        if (!isTokenValid(state.currentToken)) {
-            state.currentToken = renewToken();
-            if (state.currentToken == null) {
-                return chain.proceed(originalRequest);
+            if (state.hasInternet) {
+                if (!isTokenValid(state.currentToken)) {
+                    state.currentToken = renewToken();
+                    if (state.currentToken == null) {
+                        // Si después de la renovación no hay token, proceder sin autorización
+                        return chain.proceed(originalRequest);
+                    }
+                }
+            } else {
+                // Si no hay internet, usar el token existente
+                Log.i(TAG, "Sin conexión, usando token existente");
             }
         }
 
-        // Añade el token válido a la solicitud
+        // Proceder con el request
         Request.Builder builder = originalRequest.newBuilder()
                 .header("Authorization", "Bearer " + state.currentToken);
         Response response = chain.proceed(builder.build());
 
-        Log.i(TAG, "Código de respuesta: " + response.code());
-
-        // Manejo de respuesta 401
+        // Manejar 401
         if (response.code() == 401) {
-            // Verificamos la conexión nuevamente
-            CountDownLatch newLatch = new CountDownLatch(1);
-            NetworkUtils.isConnectedAsync(context, isConnected -> {
-                state.hasInternet = isConnected;
-                newLatch.countDown();
-            });
-
-            try {
-                newLatch.await(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            verifyConnectivity(state);
 
             if (state.hasInternet) {
-                Log.i(TAG, "Con Internet");
-                Log.i(TAG, "Token Invalido, renovando");
                 state.currentToken = renewToken();
                 if (state.currentToken != null) {
                     response.close();
@@ -130,6 +97,28 @@ public class TokenInterceptor implements Interceptor {
         return response;
     }
 
+    // Método para determinar si necesitamos validar el token
+    private boolean needsTokenValidation() {
+        long lastValidation = sharedPreferences.getLong("last_token_validation", 0);
+        long currentTime = System.currentTimeMillis();
+        // Validar solo si han pasado más de 5 minutos desde la última validación
+        return (currentTime - lastValidation) > TimeUnit.MINUTES.toMillis(5);
+    }
+
+    // Método para verificar conectividad
+    private void verifyConnectivity(ConnectionState state) {
+        CountDownLatch latch = new CountDownLatch(1);
+        NetworkUtils.isConnectedAsync(context, isConnected -> {
+            state.hasInternet = isConnected;
+            latch.countDown();
+        });
+
+        try {
+            latch.await(3, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
     private boolean isTokenValid(String token) {
         try {
             Call<TokenValidationResponse> call = authServiceApi.validarToken(token);
@@ -147,6 +136,28 @@ public class TokenInterceptor implements Interceptor {
             return null;
         }
 
+        // Verificar conectividad primero
+        CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] hasInternet = {false};
+
+        NetworkUtils.isConnectedAsync(context, isConnected -> {
+            hasInternet[0] = isConnected;
+            latch.countDown();
+        });
+
+        try {
+            latch.await(3, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return sharedPreferences.getString("token", null); // Mantener token actual si hay error
+        }
+
+        // Si no hay internet, mantener tokens actuales
+        if (!hasInternet[0]) {
+            Log.i(TAG, "Sin conexión a internet, manteniendo tokens actuales");
+            return sharedPreferences.getString("token", null);
+        }
+
         try {
             String oldToken = sharedPreferences.getString("token", null);
             TokenRequest tokenRequest = new TokenRequest(oldToken, refreshToken);
@@ -161,15 +172,32 @@ public class TokenInterceptor implements Interceptor {
                         .putString("token", newToken)
                         .putString("refreshToken", newRefreshToken)
                         .commit();
-                Log.i(TAG, "Token Renovado");
+                Log.i(TAG, "Token Renovado exitosamente");
                 return newToken;
+            } else {
+                // Contar intentos fallidos
+                int failedAttempts = sharedPreferences.getInt("token_renewal_failures", 0);
+                failedAttempts++;
+
+                // Solo borrar después de varios intentos fallidos
+                if (failedAttempts >= 3) {
+                    Log.e(TAG, "Múltiples fallos de renovación, borrando tokens");
+                    sharedPreferences.edit()
+                            .remove("token")
+                            .remove("refreshToken")
+                            .remove("token_renewal_failures")
+                            .apply();
+                    return null;
+                } else {
+                    sharedPreferences.edit()
+                            .putInt("token_renewal_failures", failedAttempts)
+                            .apply();
+                    return oldToken; // Mantener token actual
+                }
             }
         } catch (IOException e) {
             Log.e(TAG, "Error renovando el token", e);
+            return sharedPreferences.getString("token", null); // Mantener token actual en caso de error
         }
-
-        // Si la renovación falla, limpiamos los tokens
-        sharedPreferences.edit().remove("token").remove("refreshToken").apply();
-        return null;
     }
 }

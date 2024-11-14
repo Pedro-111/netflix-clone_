@@ -121,7 +121,9 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
         recyclerViewLikedShows.setAdapter(likedShowsAdapter);
     }
     private void cargarPerfiles() {
-
+        if (!isAdded()) {
+            return;
+        }
         NetworkUtils.isConnectedAsync(getContext(),isConnected -> {
             if(isConnected){
                 Call<List<Perfiles>> call = perfilServiceApi.obtenerPerfiles();
@@ -367,7 +369,10 @@ public class PerfilFragment extends Fragment implements MenuPerfilBottomSheetFra
     }
 
     public void cargarDatosPerfil(final int idPerfil) {
-        NetworkUtils.isConnectedAsync(requireContext(), isConnected -> {
+        if (!isAdded()) {
+            return; // Salimos si el fragmento no está adjunto.
+        }
+        NetworkUtils.isConnectedAsync(getContext(), isConnected -> {
             if (isConnected) {
                 // Si hay conexión, intentamos cargar desde la API
                 Call<Perfiles> call = perfilServiceApi.obtenerPerfil(idPerfil);

@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -38,7 +39,7 @@ public class IconoAdapter extends RecyclerView.Adapter<IconoAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_mi_lista, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_perfil_icono, parent, false);
         return new ViewHolder(view);
     }
 
@@ -67,14 +68,14 @@ public class IconoAdapter extends RecyclerView.Adapter<IconoAdapter.ViewHolder> 
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imagenRecomendada = itemView.findViewById(R.id.imagen_recomendada_mi_lista);
+            imagenRecomendada = itemView.findViewById(R.id.icono_perfil);
         }
         void bind(final Icono icono, final OnItemClickListener listener) {
             // Carga la imagen, considerando si es un GIF o no
             if (icono.getUrl().endsWith(".gif")) {
-                Glide.with(context).asGif().load(icono.getUrl()).into(imagenRecomendada);
+                Glide.with(context).asGif().load(icono.getUrl()).fitCenter().into(imagenRecomendada);
             } else {
-                Glide.with(context).load(icono.getUrl()).into(imagenRecomendada);
+                Glide.with(context).load(icono.getUrl()).fitCenter().into(imagenRecomendada);
             }
 
             // Configura el listener para el clic en el elemento

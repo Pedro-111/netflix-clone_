@@ -36,7 +36,7 @@ public class AdministrarPerfilesActivity extends AppCompatActivity {
     private TextInputEditText textInputNombrePerfil;
     private String nombreOriginal;
     private int idPerfil;
-    Perfiles perfiles;
+    private Perfiles perfiles;
     private CardView cambiarIcono;
     private String nuevoNombrePerfil;
     @Override
