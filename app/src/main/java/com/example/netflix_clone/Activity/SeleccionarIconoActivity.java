@@ -3,6 +3,8 @@ package com.example.netflix_clone.Activity;
 import static android.content.ContentValues.TAG;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.netflix_clone.Adapter.IconoAdapter;
+import com.example.netflix_clone.Adapter.SkeletonAdapter;
 import com.example.netflix_clone.Model.Icono;
 import com.example.netflix_clone.Model.Request.PerfilRequest;
 import com.example.netflix_clone.Model.RetrofitClient;
@@ -18,6 +21,8 @@ import com.example.netflix_clone.Service.PerfilServiceApi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -45,40 +50,90 @@ public class SeleccionarIconoActivity extends AppCompatActivity implements Icono
 
     private PerfilServiceApi perfilServiceApi;
     private String nuevoNombrePerfil;
+
+    private SkeletonAdapter skeletonAdapterClasicos;
+    private SkeletonAdapter skeletonAdapterPerros;
+    private SkeletonAdapter skeletonAdapterGatos;
+    private SkeletonAdapter skeletonAdapterHamster;
+    private SkeletonAdapter skeletonAdapterOtros;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_seleccionar_icono);
-        crearListas();
+        initializeViews();
+        showSkeletons();
+        loadData();
+    }
+    private void initializeViews() {
         recyclerViewClasicos = findViewById(R.id.clasicos_recycler_view);
         recyclerViewPerros = findViewById(R.id.perros_recycler_view);
         recyclerViewGatos = findViewById(R.id.gatos_recycler_view);
         recyclerViewHamster = findViewById(R.id.hamsters_recycler_view);
         recyclerViewOtros = findViewById(R.id.otros_recycler_view);
+
         idPerfil = obtenerPerfilActual();
         nuevoNombrePerfil = obtenerNombreActual();
-        perfilServiceApi = RetrofitClient.getPerfilServiceApi(SeleccionarIconoActivity.this);
-        recyclerViewClasicos.setLayoutManager(new LinearLayoutManager(SeleccionarIconoActivity.this, LinearLayoutManager.HORIZONTAL, false));
-        adapterIconoClasicos = new IconoAdapter(clasicos,SeleccionarIconoActivity.this,this);
+        perfilServiceApi = RetrofitClient.getPerfilServiceApi(this);
+
+        // Configura los LayoutManagers
+        setupLayoutManagers();
+    }
+
+    private void setupLayoutManagers() {
+        LinearLayoutManager layoutManager1 = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager2 = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager3 = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager4 = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager layoutManager5 = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+
+        recyclerViewClasicos.setLayoutManager(layoutManager1);
+        recyclerViewPerros.setLayoutManager(layoutManager2);
+        recyclerViewGatos.setLayoutManager(layoutManager3);
+        recyclerViewHamster.setLayoutManager(layoutManager4);
+        recyclerViewOtros.setLayoutManager(layoutManager5);
+    }
+    private void loadData() {
+        // Simula un tiempo de carga
+        new Handler().postDelayed(() -> {
+            crearListas();
+            setRealAdapters();
+        }, 1500); // 1.5 segundos de delay
+    }
+//    private void loadData() {
+//        ExecutorService executor = Executors.newSingleThreadExecutor();
+//        Handler handler = new Handler(Looper.getMainLooper());
+//
+//        executor.execute(() -> {
+//                crearListas();
+//                handler.post(this::setRealAdapters);
+//        });
+//    }
+    private void showSkeletons() {
+        // Crear y establecer los adaptadores skeleton
+        skeletonAdapterClasicos = new SkeletonAdapter(5);
+        skeletonAdapterPerros = new SkeletonAdapter(5);
+        skeletonAdapterGatos = new SkeletonAdapter(5);
+        skeletonAdapterHamster = new SkeletonAdapter(5);
+        skeletonAdapterOtros = new SkeletonAdapter(5);
+
+        recyclerViewClasicos.setAdapter(skeletonAdapterClasicos);
+        recyclerViewPerros.setAdapter(skeletonAdapterPerros);
+        recyclerViewGatos.setAdapter(skeletonAdapterGatos);
+        recyclerViewHamster.setAdapter(skeletonAdapterHamster);
+        recyclerViewOtros.setAdapter(skeletonAdapterOtros);
+    }
+    private void setRealAdapters() {
+        adapterIconoClasicos = new IconoAdapter(clasicos, this, this);
+        adapterIconoPerros = new IconoAdapter(perros, this, this);
+        adapterIconoGatos = new IconoAdapter(gatos, this, this);
+        adapterIconoHamster = new IconoAdapter(hamster, this, this);
+        adapterIconoOtros = new IconoAdapter(otros, this, this);
+
         recyclerViewClasicos.setAdapter(adapterIconoClasicos);
-
-
-        recyclerViewPerros.setLayoutManager(new LinearLayoutManager(SeleccionarIconoActivity.this, LinearLayoutManager.HORIZONTAL, false));
-        adapterIconoPerros = new IconoAdapter(perros,SeleccionarIconoActivity.this,this);
         recyclerViewPerros.setAdapter(adapterIconoPerros);
-
-        recyclerViewGatos.setLayoutManager(new LinearLayoutManager(SeleccionarIconoActivity.this, LinearLayoutManager.HORIZONTAL, false));
-        adapterIconoGatos = new IconoAdapter(gatos,SeleccionarIconoActivity.this,this);
         recyclerViewGatos.setAdapter(adapterIconoGatos);
-
-        recyclerViewHamster.setLayoutManager(new LinearLayoutManager(SeleccionarIconoActivity.this, LinearLayoutManager.HORIZONTAL, false));
-        adapterIconoHamster = new IconoAdapter(hamster,SeleccionarIconoActivity.this,this);
         recyclerViewHamster.setAdapter(adapterIconoHamster);
-
-        recyclerViewOtros.setLayoutManager(new LinearLayoutManager(SeleccionarIconoActivity.this, LinearLayoutManager.HORIZONTAL, false));
-        adapterIconoOtros = new IconoAdapter(otros,SeleccionarIconoActivity.this,this);
         recyclerViewOtros.setAdapter(adapterIconoOtros);
-
     }
     private void crearListas(){
         clasicos = new ArrayList<>();

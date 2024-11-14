@@ -25,7 +25,9 @@
                 android:layout_height="match_parent"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop" />
+
         </FrameLayout>
+
 
     </androidx.cardview.widget.CardView>
 

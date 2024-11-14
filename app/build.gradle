@@ -91,4 +91,7 @@ dependencies {
 
     // GreenRobot para notificar cuando vence nuestro token
     implementation 'org.greenrobot:eventbus:3.2.0'
+
+    //
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
 }
