@@ -146,6 +146,7 @@ public class SeleccionarIconoActivity extends AppCompatActivity implements Icono
         perros = new ArrayList<>();
         perros.add(new Icono("https://i.postimg.cc/3wWz4bm8/66d75543dcb91.webp"));
         perros.add(new Icono("https://i.postimg.cc/d0F79S0f/mauro-en-un-plato.png"));
+        perros.add(new Icono("https://i.postimg.cc/0Qf1mV23/nosewey.gif"));
         perros.add(new Icono("https://i.postimg.cc/ZnDwSJs6/af5017c3cc8e6baab0a827af497e82e7.jpg"));
         perros.add(new Icono("https://i.postimg.cc/jdqYTLtW/images.jpg"));
         perros.add(new Icono("https://i.postimg.cc/Nf3x7J3G/Perro.jpg"));

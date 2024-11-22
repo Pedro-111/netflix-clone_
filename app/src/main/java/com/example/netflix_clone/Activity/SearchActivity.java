@@ -85,7 +85,6 @@ public class SearchActivity extends AppCompatActivity {
     private void loadMoreItems() {
         if (!isLoading) {
             isLoading = true;
-            currentPage++;
             searchAdapter.setLoadingMore(true);
 
             loadingHandler.postDelayed(() -> {
